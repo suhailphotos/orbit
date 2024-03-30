@@ -3,6 +3,12 @@
 houdiniUtils() {
     local houdini_version="20.0.653"  # Default Houdini version
     local optional_command="$1"
+
+    set_houdini_user_pref() {
+      if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
+          export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/20.0"
+      fi
+    }
     
     
     change_dir_activate() {
@@ -29,24 +35,29 @@ houdiniUtils() {
         if [ "$optional_command" = "-e" ]; then
             if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
                 change_dir_activate
+                set_houdini_user_pref
                 set_env_vars
             else
                 change_dir_activate
+                set_houdini_user_pref
                 echo "Environment variables are already active"
                 return 1
             fi
         elif [ "$optional_command" = "-hou" ]; then
             if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
                 change_dir_activate
+                set_houdini_user_pref
                 set_env_vars
                 python3 ./importhou/importhou.py || return 1
             else
                 change_dir_activate
+                set_houdini_user_pref
                 python3 ./importhou/importhou.py || return 1
             fi
         fi
     else
         change_dir_activate
+        set_houdini_user_pref
     fi
 }
 
