@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Define USD_INSTALL_ROOT outside of any function
-USD_INSTALL_ROOT="/Users/suhail/openUSD/built"
-
 usdUtils() {
     set_env_vars() {
-        # Export USD_INSTALL_ROOT if not already set
-        if [[ -z "$USD_INSTALL_ROOT" ]]; then
-            export USD_INSTALL_ROOT="$USD_INSTALL_ROOT"
-        fi
+       set_houdini_user_pref() {
+      if [[ -z "$USD_INSTALL_ROOT" ]]; then
+          export USD_INSTALL_ROOT="$HOME/openUSD/built"
+      fi
+    }
 
         # Export PYTHONPATH if not already set
         if [[ -z "$PYTHONPATH" ]]; then
