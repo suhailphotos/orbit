@@ -2,12 +2,10 @@
 
 usdUtils() {
     set_env_vars() {
-       set_houdini_user_pref() {
-      if [[ -z "$USD_INSTALL_ROOT" ]]; then
-          export USD_INSTALL_ROOT="$HOME/openUSD/built"
-      fi
-    }
-
+        if [[ -z "$USD_INSTALL_ROOT" ]]; then
+            export USD_INSTALL_ROOT="$HOME/openUSD/built"
+        fi
+  
         # Export PYTHONPATH if not already set
         if [[ -z "$PYTHONPATH" ]]; then
             export PYTHONPATH="$USD_INSTALL_ROOT/lib/python"
@@ -24,15 +22,14 @@ usdUtils() {
         if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
             cd "$HOME/Documents/matrix/packages/usdUtils/" || return 1
-            set_env_vars
         elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
             cd "$HOME/Documents/matrix/packages/usdUtils/" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
-            set_env_vars
         fi
     }
     
     # Call the change_dir_activate function
+    set_env_vars
     change_dir_activate
 }
