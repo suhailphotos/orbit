@@ -37,10 +37,10 @@ usdUtils() {
 pythonKitchen() {
   # Place holder setting any environment variables if needed 
 
-   # set_env_vars() {
-   #     if [[ -z "$USD_INSTALL_ROOT" ]]; then
-   #         export USD_INSTALL_ROOT="$HOME/openUSD/built"
-   #     fi
+    set_env_vars() {
+        if [[ -z "$PROJECT_ROOT" ]]; then
+            export PROJECT_ROOT="$HOME/Documents/matrix/packages/pythonKitchen"
+        fi
   
    #     # Export PYTHONPATH if not already set
    #     if [[ -z "$PYTHONPATH" ]]; then
@@ -51,7 +51,7 @@ pythonKitchen() {
    #     if [[ ":$PATH:" != *":$USD_INSTALL_ROOT/bin:"* ]]; then
    #         export PATH="$USD_INSTALL_ROOT/bin:$PATH"
    #     fi
-   # }
+   }
 
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
@@ -66,6 +66,7 @@ pythonKitchen() {
     }
     
     # Call the change_dir_activate function
-    # set_env_vars
+    set_env_vars
     change_dir_activate
+    poetry run python "$HOME/Documents/matrix/packages/pythonKitchen/setupEnv.py"
 }
