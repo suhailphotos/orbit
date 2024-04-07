@@ -15,6 +15,11 @@ usdUtils() {
         if [[ ":$PATH:" != *":$USD_INSTALL_ROOT/bin:"* ]]; then
             export PATH="$USD_INSTALL_ROOT/bin:$PATH"
         fi
+
+        if [[ -z "$PROJECT_ROOT" ]]; then
+            export PROJECT_ROOT="$HOME/Documents/matrix/packages/usdUtils"
+        fi
+
     }
 
     change_dir_activate() {
