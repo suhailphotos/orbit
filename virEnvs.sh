@@ -47,15 +47,13 @@ pythonKitchen() {
             export PROJECT_ROOT="$HOME/Documents/matrix/packages/pythonKitchen"
         fi
   
-   #     # Export PYTHONPATH if not already set
-   #     if [[ -z "$PYTHONPATH" ]]; then
-   #         export PYTHONPATH="$USD_INSTALL_ROOT/lib/python"
-   #     fi
+        #if [[ -z "$VFX_LIB" ]]; then
+        #    export VFX_LIB="$HOME/Library/CloudStorage/Dropbox/threeD/lib"
+        #fi
 
-   #     # Prepend USD_INSTALL_ROOT/bin to PATH if not already included
-   #     if [[ ":$PATH:" != *":$USD_INSTALL_ROOT/bin:"* ]]; then
-   #         export PATH="$USD_INSTALL_ROOT/bin:$PATH"
-   #     fi
+        #if [[ ":$PATH:" != *":$USD_INSTALL_ROOT/bin:"* ]]; then
+        #    export PATH="$USD_INSTALL_ROOT/bin:$PATH"
+        #fi
    }
 
     change_dir_activate() {

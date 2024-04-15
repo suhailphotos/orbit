@@ -72,4 +72,4 @@ update_houdini_env() {
 }
 
 # Call the main function with the environment name as argument (change "usdUtils" to your desired environment)
-
+# update_houdini_env "usdUtils"
