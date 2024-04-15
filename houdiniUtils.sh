@@ -46,18 +46,18 @@ houdiniUtils() {
         elif [ "$optional_command" = "-hou" ]; then
             if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
                 change_dir_activate
-                set_houdini_user_pref
+                #set_houdini_user_pref     Houdini user pref are set in all environments using setenvars.sh (so not necessary here)
                 set_env_vars
                 python3 ./importhou/importhou.py || return 1
             else
                 change_dir_activate
-                set_houdini_user_pref
+                #set_houdini_user_pref
                 python3 ./importhou/importhou.py || return 1
             fi
         fi
     else
         change_dir_activate
-        set_houdini_user_pref
+        #set_houdini_user_pref
     fi
 }
 
