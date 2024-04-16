@@ -1,0 +1,7 @@
+{
+  "system":{
+    "VFX_LIB": "$HOME/Library/CloudStorage/Dropbox/threeD/lib",
+    "USD_LIB": "$HOME/Library/CloudStorage/Dropbox/threeD/lib/usd",
+    "HOUDINI_USER_PREF_DIR": "$HOME/Documents/houdini/houUserPref/20.0"
+  }
+}
