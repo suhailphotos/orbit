@@ -1,7 +1,7 @@
 #!/bin/bash
 
 houdiniUtils() {
-    local houdini_version="20.0.688"  # Default Houdini version
+    local houdini_version="20.0.724"  # Default Houdini version
     local optional_command="$1"
 
     set_houdini_user_pref() {
