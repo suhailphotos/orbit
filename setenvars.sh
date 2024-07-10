@@ -14,7 +14,7 @@ set_env_vars() {
   fi
 
   if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
-    export HOUDINI_USER_PREF_DIR="$HOME/Documents/houdini/houUserPref/20.0"
+    export HOUDINI_USER_PREF_DIR="$HOME/Documents/houdini/houUserPref/20.5"
   fi
 }
 set_env_vars
