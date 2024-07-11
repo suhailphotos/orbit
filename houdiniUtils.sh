@@ -1,12 +1,12 @@
 #!/bin/bash
 
 houdiniUtils() {
-    local houdini_version="20.0.724"  # Default Houdini version
+    local houdini_version="20.5.278"  # Default Houdini version
     local optional_command="$1"
 
     set_houdini_user_pref() {
       if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
-          export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/20.0"
+          export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/20.5"
       fi
     }
     
