@@ -111,3 +111,17 @@ ocioTools() {
     set_env_vars
     change_dir_activate
 }
+houdiniPublish() {
+    # Root directory of the virtual environment
+    local vir_env_dir="$HOME/.virtualenvs/houdiniPublish"
+
+    # Default action: change to the root of the virtual environment and activate
+    if [[ "$1" == "packages" ]]; then
+        # Optional command to jump to site-packages folder
+        cd "$vir_env_dir/lib/python3.11/site-packages" || return 1
+    else
+        # Default action: change to the root of the virtual environment
+        cd "$vir_env_dir" || return 1
+        source "$vir_env_dir/bin/activate" || return 1
+    fi
+}
