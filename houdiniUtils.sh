@@ -6,25 +6,25 @@ houdiniUtils() {
 
     set_houdini_user_pref() {
       if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
-          export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/20.5"
+          export HOUDINI_USER_PREF_DIR="$HOME/Library/CloudStorage/Dropbox/appSettings/houdini/mac/20.5"
       fi
     }
     
     
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
-        if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/houdiniUtils" && "$VIRTUAL_ENV" != "" ]]; then
+        if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniUtils" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
-            cd "$HOME/Documents/matrix/packages/houdiniUtils" || return 1
-        elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/houdiniUtils" && "$VIRTUAL_ENV" == ""  ]]; then
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniUtils" || return 1
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniUtils" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
-            cd "$HOME/Documents/matrix/packages/houdiniUtils" || return 1
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniUtils" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
     }
 
     set_env_vars() {
-        export PYTHONPATH="/Applications/Houdini/Houdini${houdini_version}/Frameworks/Houdini.framework/Versions/Current/Resources/houdini/python3.10libs"
+        export PYTHONPATH="/Applications/Houdini/Houdini${houdini_version}/Frameworks/Houdini.framework/Versions/Current/Resources/houdini/python3.11libs"
         export DYLD_INSERT_LIBRARIES="/Applications/Houdini/Houdini${houdini_version}/Frameworks/Houdini.framework/Versions/Current/Houdini"
         cd "/Applications/Houdini/Houdini${houdini_version}/Frameworks/Houdini.framework/Versions/Current/Resources" || return 1
         source ./houdini_setup || return 1

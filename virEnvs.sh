@@ -17,19 +17,19 @@ usdUtils() {
         fi
 
         if [[ -z "$PROJECT_ROOT" ]]; then
-            export PROJECT_ROOT="$HOME/Documents/matrix/packages/usdUtils"
+            export PROJECT_ROOT="$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils"
         fi
 
     }
 
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
-        if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" != "" ]]; then
+        if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
-            cd "$HOME/Documents/matrix/packages/usdUtils/" || return 1
-        elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" == ""  ]]; then
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils/" || return 1
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils/" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
-            cd "$HOME/Documents/matrix/packages/usdUtils/" || return 1
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils/" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
     }
@@ -44,7 +44,7 @@ pythonKitchen() {
 
     set_env_vars() {
         if [[ -z "$PROJECT_ROOT" ]]; then
-            export PROJECT_ROOT="$HOME/Documents/matrix/packages/pythonKitchen"
+            export PROJECT_ROOT="$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen"
         fi
   
         #if [[ -z "$VFX_LIB" ]]; then
@@ -58,12 +58,12 @@ pythonKitchen() {
 
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
-        if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/pythonKitchen/" && "$VIRTUAL_ENV" != "" ]]; then
+        if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen/" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
-            cd "$HOME/Documents/matrix/packages/pythonKitchen/" || return 1
-        elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/pythonKitchen/" && "$VIRTUAL_ENV" == ""  ]]; then
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen/" || return 1
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen/" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
-            cd "$HOME/Documents/matrix/packages/pythonKitchen/" || return 1
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen/" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
     }
@@ -71,7 +71,7 @@ pythonKitchen() {
     # Call the change_dir_activate function
     set_env_vars
     change_dir_activate
-    poetry run python "$HOME/Documents/matrix/packages/pythonKitchen/setupEnv.py"
+    poetry run python "$HOME/Library/CloudStorage/Dropbox/matrix/packages/pythonKitchen/setupEnv.py"
 }
 ocioTools() {
     set_env_vars() {
@@ -90,19 +90,19 @@ ocioTools() {
        # fi
 
        # if [[ -z "$PROJECT_ROOT" ]]; then
-       #     export PROJECT_ROOT="$HOME/Documents/matrix/packages/usdUtils"
+       #     export PROJECT_ROOT="$HOME/Library/CloudStorage/Dropbox/matrix/packages/usdUtils"
        # fi
 
     }
 
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
-        if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/ocioTools/" && "$VIRTUAL_ENV" != "" ]]; then
+        if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/ocioTools/" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
-            cd "$HOME/Documents/matrix/packages/ocioTools/" || return 1
-        elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/ocioTools/" && "$VIRTUAL_ENV" == ""  ]]; then
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/ocioTools/" || return 1
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/ocioTools/" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
-            cd "$HOME/Documents/matrix/packages/ocioTools/" || return 1
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/ocioTools/" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
     }

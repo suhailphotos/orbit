@@ -7,8 +7,8 @@ update_houdini_env() {
 
     # Function to retrieve the path of Python packages for the specified environment
     get_python_packages_path() {
-        cd "$HOME/Documents/matrix/packages/$environment" || {
-            echo "Error: Failed to change directory to $HOME/Documents/matrix/packages/$environment"
+        cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/$environment" || {
+            echo "Error: Failed to change directory to $HOME/Library/CloudStorage/Dropbox/matrix/packages/$environment"
             return 1
         }
 

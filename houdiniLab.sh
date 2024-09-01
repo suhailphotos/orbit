@@ -13,12 +13,12 @@ houdiniLab() {
     
     change_dir_activate() {
         # Check if already in the desired directory and environment is activated
-        if [[ "$(pwd)" != "$HOME/Documents/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" != "" ]]; then
+        if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" != "" ]]; then
             # If not in the directory, change directory
-            cd "$HOME/Documents/matrix/packages/houdiniLab" || return 1
-        elif [[ "$(pwd)" != "$HOME/Documents/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" == ""  ]]; then
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" || return 1
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" == ""  ]]; then
             # If not in the directory and environment is already active, change directory
-            cd "$HOME/Documents/matrix/packages/houdiniLab" || return 1
+            cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
     }
