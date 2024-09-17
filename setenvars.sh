@@ -4,7 +4,12 @@ set_env_vars() {
   if [[ -z "$VFX_LIB" ]]; then
     export VFX_LIB="$HOME/Library/CloudStorage/SynologyDrive-NAS/threeD/lib"
   fi
-
+  if [[ -z "$MATRIX" ]]; then
+    export MATRIX="$HOME/Library/CloudStorage/Dropbox/matrix"
+  fi
+  if [[ -z "$DROPBOX" ]]; then
+    export DROPBOX="$HOME/Library/CloudStorage/Dropbox"
+  fi
   if [[ -z "$USD_LIB" ]]; then
     export USD_LIB="$HOME/Library/CloudStorage/SynologyDrive-NAS/threeD/lib/usd"
   fi
