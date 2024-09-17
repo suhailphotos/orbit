@@ -17,6 +17,9 @@ set_env_vars() {
   if [[ -z "$ASSET_INGEST_DIR" ]]; then
     export ASSET_INGEST_DIR="$HOME/Library/CloudStorage/SynologyDrive-NAS/threeD/lib/ingest"
   fi
+  if [[ -z "$CREDENTIALS_PATH" ]]; then
+    export CREDENTIALS_PATH="$HOME/Library/CloudStorage/Dropbox/matrix/config/credentials"
+  fi
 
   if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
     export HOUDINI_USER_PREF_DIR="$HOME/Library/CloudStorage/Dropbox/appSettings/houdini/mac/20.5"
