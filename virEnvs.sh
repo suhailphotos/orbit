@@ -44,6 +44,9 @@ oauthManager() {
         if [[ -z "$PROJECT_ROOT" ]]; then
             export PROJECT_ROOT="$HOME/Library/CloudStorage/Dropbox/matrix/packages/oauthManager"
         fi
+        if [[ -z "$OP_CACHE" ]]; then
+            export OP_CACHE=true
+        fi
 
         # Add more environment variables specific to the project here, if needed
     }
