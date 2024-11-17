@@ -152,3 +152,28 @@ houdiniPublish() {
         source "$vir_env_dir/bin/activate" || return 1
     fi
 }
+notionUtils() {
+    set_env_vars() {
+        # Set environment variables if not already set
+        if [[ -z "$PROJECT_ROOT" ]]; then
+            export PROJECT_ROOT="$HOME/Library/CloudStorage/Dropbox/matrix/packages/notionUtils"
+        fi
+
+        # Add more environment variables specific to the project here, if needed
+    }
+
+    change_dir_activate() {
+        # Check if already in the desired directory and if the environment is active
+        if [[ "$(pwd)" != "$PROJECT_ROOT" && -z "$VIRTUAL_ENV" ]]; then
+            cd "$PROJECT_ROOT" || return 1
+            source "$(poetry env info --path)/bin/activate" || return 1
+        elif [[ "$(pwd)" != "$PROJECT_ROOT" ]]; then
+            cd "$PROJECT_ROOT" || return 1
+        fi
+    }
+
+    # Call the functions to set environment variables and activate the environment
+    set_env_vars
+    change_dir_activate
+}
+
