@@ -1,4 +1,16 @@
 #!/bin/bash
 
-# Always set the TailScale API token, overwriting any existing value
-export TS_AUTHKEY="tskey-auth-kfjQg3rZiS11CNTRL-vb5HZNSnxWcUvr47v7fEXcSerPBrkBtx"
+# Ensure BASE_DIR is set
+if [[ -z "$BASE_DIR" ]]; then
+  echo "Error: BASE_DIR is not set. Please source setup_env.sh first." >&2
+  return 1
+fi
+
+# Ensure TS_AUTHKEY is set
+if [[ -z "$TS_AUTHKEY" ]]; then
+  echo "Error: TS_AUTHKEY is not set. Ensure it is defined in the .env file." >&2
+  return 1
+fi
+
+# Example usage
+echo "TailScale API key successfully loaded."
