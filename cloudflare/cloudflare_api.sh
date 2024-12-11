@@ -1,23 +1,44 @@
 #!/bin/bash
 
-# Only set the Cloudflare API tokens if they are not already set in the environment
+# Ensure BASE_DIR is set
+if [[ -z "$BASE_DIR" ]]; then
+  echo "Error: BASE_DIR is not set. Please source setup_env.sh first."
+  exit 1
+fi
 
-# For suhail.tech
+# Path to the .env file
+ENV_FILE="$BASE_DIR/envars/.env"
+
+# Check if .env file exists
+if [ -f "$ENV_FILE" ]; then
+  # Load the .env file
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+  echo "Error: .env file not found at $ENV_FILE. Please create it and add the necessary credentials."
+  exit 1
+fi
+
+# Use the credentials
 if [ -z "$CLOUDFLARE_API_TOKEN_SUHAIL_TECH" ]; then
-  export CLOUDFLARE_API_TOKEN_SUHAIL_TECH="4Ng9kIGPI_M2LxmmJ_3MUAhRzWkS99wehU2pUA0j"
+  echo "Error: CLOUDFLARE_API_TOKEN_SUHAIL_TECH is not set in the .env file."
+  exit 1
 fi
 
-# For suhail.life
 if [ -z "$CLOUDFLARE_API_TOKEN_SUHAIL_LIFE" ]; then
-  export CLOUDFLARE_API_TOKEN_SUHAIL_LIFE="IlOLyKeO9p1zl-ei_lQGTnFOITxOlIS7JuK6wdvX"
+  echo "Error: CLOUDFLARE_API_TOKEN_SUHAIL_LIFE is not set in the .env file."
+  exit 1
 fi
 
-# For suhail.photos
 if [ -z "$CLOUDFLARE_API_TOKEN_SUHAIL_PHOTOS" ]; then
-  export CLOUDFLARE_API_TOKEN_SUHAIL_PHOTOS="Kxco5ZSvTpqVQwyBwBAmU8ekCYgJqI0trQ488n-d"
+  echo "Error: CLOUDFLARE_API_TOKEN_SUHAIL_PHOTOS is not set in the .env file."
+  exit 1
 fi
 
-# For suhail.art
 if [ -z "$CLOUDFLARE_API_TOKEN_SUHAIL_ART" ]; then
-  export CLOUDFLARE_API_TOKEN_SUHAIL_ART="7km60lCSMETMqh2M6S_11jb3P9H-p48V0MjmREwM"
+  echo "Error: CLOUDFLARE_API_TOKEN_SUHAIL_ART is not set in the .env file."
+  exit 1
 fi
+
+# Example usage
+echo "Cloudflare API tokens successfully loaded."
+echo "Using token for suhail.tech: $CLOUDFLARE_API_TOKEN_SUHAIL_TECH"
