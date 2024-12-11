@@ -23,8 +23,6 @@ set_dropbox_path() {
             echo "Unsupported platform. Exiting."
             exit 1
         fi
-    else
-        echo "DROPBOX environment variable is already set to: $DROPBOX"
     fi
 }
 
@@ -42,7 +40,6 @@ create_env_function() {
             if [[ -z \"\$PROJECT_ROOT\" ]]; then
                 export PROJECT_ROOT=\"\$DROPBOX/matrix/packages/$poetry_project\"
             fi
-            echo \"PROJECT_ROOT set to \$PROJECT_ROOT\"
         }
 
         change_dir_activate() {
