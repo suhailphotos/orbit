@@ -4,63 +4,70 @@
 load_env_variables() {
   local env_file="$BASE_DIR/envars/.env"
   if [[ -f "$env_file" ]]; then
-    export $(grep -v '^#' "$env_file" | sed "s|\$DROPBOX|$DROPBOX|g" | xargs)
+    while IFS='=' read -r key value; do
+      # Skip comments and empty lines
+      [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+      # Expand variables dynamically if they contain '$'
+      value=$(eval echo "$value")
+      export "$key=$value"
+    done < "$env_file" || {
+      echo "Warning: Failed to load environment variables from $env_file." >&2
+    }
   else
-    echo "Error: .env file not found in $BASE_DIR/envars." >&2
-    return 1
+    echo "Warning: .env file not found in $BASE_DIR/envars." >&2
   fi
 }
 
 # Function to detect the operating system and set the $DROPBOX variable
 set_dropbox_path() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS-specific setup
     export DROPBOX="$HOME/Library/CloudStorage/Dropbox"
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux-specific setup
     export DROPBOX="$HOME/Dropbox"
   else
-    echo "Error: Unsupported operating system. Cannot set DROPBOX." >&2
-    return 1
+    echo "Warning: Unsupported operating system. Cannot set DROPBOX." >&2
   fi
 }
 
 # Function to detect and set the base directory dynamically
 set_base_dir() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS-specific setup
     if [[ -d "$HOME/Library/CloudStorage/Dropbox/matrix/shellscripts" ]]; then
       export BASE_DIR="$HOME/Library/CloudStorage/Dropbox/matrix/shellscripts"
     elif [[ -d "$HOME/Documents/tools/cliUtils" ]]; then
       export BASE_DIR="$HOME/Documents/tools/cliUtils"
     else
-      echo "Error: Could not determine BASE_DIR on macOS." >&2
-      return 1
+      echo "Warning: Could not determine BASE_DIR on macOS." >&2
     fi
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux-specific setup
     if [[ -d "$HOME/Dropbox/matrix/shellscripts" ]]; then
       export BASE_DIR="$HOME/Dropbox/matrix/shellscripts"
     else
-      echo "Error: Could not determine BASE_DIR on Linux." >&2
-      return 1
+      echo "Warning: Could not determine BASE_DIR on Linux." >&2
     fi
   else
-    echo "Error: Unsupported operating system." >&2
-    return 1
+    echo "Warning: Unsupported operating system." >&2
   fi
 }
 
-# Ensure the credentials path is set
+# Ensure the credentials path is set and validate the credentials script
 check_credentials_path() {
   if [[ -z "$CREDENTIALS_PATH" ]]; then
-    echo "Error: CREDENTIALS_PATH is not set. Ensure it is defined in the .env file or set manually." >&2
-    return 1
+    echo "Warning: CREDENTIALS_PATH is not set. Ensure it is defined in the .env file or set manually." >&2
+  else
+    # Check if the credentials script exists
+    local credentials_script="$CREDENTIALS_PATH/1PassCLI.sh"
+    if [[ ! -f "$credentials_script" ]]; then
+      echo "Warning: Credentials script not found at $credentials_script. Ensure the script exists." >&2
+    else
+      # Source the credentials script if it exists
+      source "$credentials_script"
+    fi
   fi
 }
 
-# Initialize setup
-set_dropbox_path || exit 1
-set_base_dir || exit 1
-load_env_variables || exit 1
-check_credentials_path || exit 1
+# Initialize setup without exiting on error
+set_dropbox_path
+set_base_dir
+load_env_variables
+check_credentials_path
