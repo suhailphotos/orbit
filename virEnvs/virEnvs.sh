@@ -72,6 +72,7 @@ create_env_function "usdUtils" "usdUtils" "usdUtils"
 create_env_function "oauthManager" "oauthManager" "oauthManager"
 create_env_function "pythonKitchen" "pythonKitchen" "pythonKitchen"
 create_env_function "ocioTools" "ocioTools" "ocioTools"
+create_env_function "helperScripts" "helperScripts" "helperScripts"
 
 # Function for HoudiniPublish (special case)
 houdiniPublish() {
@@ -95,6 +96,11 @@ notionUtils() {
     set_env_vars() {
         if [[ -z "$PROJECT_ROOT" ]]; then
             export PROJECT_ROOT="$DROPBOX/matrix/packages/notionUtils"
+        fi
+
+        # Set PREFECT_API_URL if not already set
+        if [[ -z "$PREFECT_API_URL" ]]; then
+            export PREFECT_API_URL="http://10.81.29.44:4200/api"
         fi
     }
 

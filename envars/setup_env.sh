@@ -29,6 +29,17 @@ set_dropbox_path() {
   fi
 }
 
+set_docker_path() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    export DOCKER="$HOME/Library/CloudStorage/Dropbox/matrix/docker"
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    export DOCKER="$HOME/Dropbox/matrix/docker"
+  else
+    echo "Warning: Unsupported operating system. Cannot set DOCKER." >&2
+  fi
+}
+
+
 # Function to detect and set the base directory dynamically
 set_base_dir() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -68,6 +79,7 @@ check_credentials_path() {
 
 # Initialize setup without exiting on error
 set_dropbox_path
+set_docker_path
 set_base_dir
 load_env_variables
 check_credentials_path
