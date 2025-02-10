@@ -39,6 +39,16 @@ set_docker_path() {
   fi
 }
 
+set_datalib_path() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    export DATALIB="$HOME/Library/CloudStorage/SynologyDrive-dataLib"
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    export DATALIB="$HOME/Synology-dataLib"
+  else
+    echo "Warning: Unsupported operating system. Cannot set DATALIB." >&2
+  fi
+}
+
 
 # Function to detect and set the base directory dynamically
 set_base_dir() {
