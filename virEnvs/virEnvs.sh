@@ -73,7 +73,7 @@ create_env_function "oauthManager" "oauthManager" "oauthManager"
 create_env_function "pythonKitchen" "pythonKitchen" "pythonKitchen"
 create_env_function "ocioTools" "ocioTools" "ocioTools"
 create_env_function "helperScripts" "helperScripts" "helperScripts"
-create_env_function "bootStrapX" "bootStrapX" "bootStrapX"
+create_env_function "Incept" "Incept" "Incept"
 
 # Function for HoudiniPublish (special case)
 houdiniPublish() {
