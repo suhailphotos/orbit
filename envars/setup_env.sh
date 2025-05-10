@@ -1,95 +1,108 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# setup_env.sh — safe to source from zsh/bash, cross-platform
 
-# Function to load environment variables from a .env file
+# 1) XDG config (if unset, default to ~/.config)
+set_xdg_config() {
+  : "${XDG_CONFIG_HOME:=$HOME/.config}"
+  export XDG_CONFIG_HOME
+}
+
+# 2) Dropbox root
+set_dropbox_path() {
+  case "$OSTYPE" in
+    darwin*)      DROPBOX="$HOME/Library/CloudStorage/Dropbox"    ;;
+    linux-gnu*)   DROPBOX="$HOME/Dropbox"                        ;;
+    msys*|cygwin*) DROPBOX="$USERPROFILE/Dropbox"                ;;
+    *)            DROPBOX="$HOME/Dropbox"                       ;;
+  esac
+  export DROPBOX
+}
+
+# 3) Global .env file
+set_global_env() {
+  case "$OSTYPE" in
+    darwin*)      GLOBAL_ENV_FILE="$HOME/Library/CloudStorage/Dropbox/matrix/shellscripts/envars/.env"    ;;
+    linux-gnu*)   GLOBAL_ENV_FILE="$HOME/Dropbox/matrix/shellscripts/envars/.env"                        ;;
+    msys*|cygwin*) GLOBAL_ENV_FILE="$USERPROFILE/Dropbox/matrix/shellscripts/envars/.env"                ;;
+    *)            GLOBAL_ENV_FILE="$HOME/Dropbox/matrix/shellscripts/envars/.env"                       ;;
+  esac
+  export GLOBAL_ENV_FILE
+}
+
+# 4) Docker path (always under Dropbox)
+set_docker_path() {
+  DOCKER="$DROPBOX/matrix/docker"
+  export DOCKER
+}
+
+# 5) DataLib path (SynologyDrive-dataLib lives in CloudStorage on mac, home on Linux/Windows)
+set_datalib_path() {
+  case "$OSTYPE" in
+    darwin*)      DATALIB="$HOME/Library/CloudStorage/SynologyDrive-dataLib" ;;
+    linux-gnu*)   DATALIB="$HOME/Synology-dataLib"                         ;;
+    msys*|cygwin*) DATALIB="$USERPROFILE/Synology-dataLib"                 ;;
+    *)            DATALIB="$HOME/Synology-dataLib"                        ;;
+  esac
+  export DATALIB
+}
+
+# 6) BASE_DIR detection (where your shellscripts live)
+set_base_dir() {
+  if [[ -d "$DROPBOX/matrix/shellscripts" ]]; then
+    BASE_DIR="$DROPBOX/matrix/shellscripts"
+  elif [[ -d "$HOME/Documents/tools/cliUtils" ]]; then
+    BASE_DIR="$HOME/Documents/tools/cliUtils"
+  else
+    BASE_DIR="$PWD"
+  fi
+  export BASE_DIR
+}
+
+# 7) Load .env from $BASE_DIR/envars/.env (skip blank/comment, support '=' in values)
 load_env_variables() {
   local env_file="$BASE_DIR/envars/.env"
   if [[ -f "$env_file" ]]; then
-    while IFS='=' read -r key value; do
-      # Skip comments and empty lines
-      [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
-      # Expand variables dynamically if they contain '$'
-      value=$(eval echo "$value")
-      export "$key=$value"
-    done < "$env_file" || {
-      echo "Warning: Failed to load environment variables from $env_file." >&2
-    }
+    while IFS= read -r line || [[ -n $line ]]; do
+      [[ "$line" =~ ^[[:space:]]*# ]] && continue   # skip comments
+      [[ -z "${line// }" ]] && continue            # skip blank
+      key=${line%%=*}
+      val=${line#*=}
+      eval val=\"${val}\"                          # expand embedded vars
+      export "$key"="$val"
+    done <"$env_file"
   else
-    echo "Warning: .env file not found in $BASE_DIR/envars." >&2
+    echo "Warning: .env not found at $env_file" >&2
   fi
 }
 
-# Function to detect the operating system and set the $DROPBOX variable
-set_dropbox_path() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    export DROPBOX="$HOME/Library/CloudStorage/Dropbox"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    export DROPBOX="$HOME/Dropbox"
-  else
-    echo "Warning: Unsupported operating system. Cannot set DROPBOX." >&2
-  fi
-}
+# 8) Source credentials helper if CREDENTIALS_PATH is defined
+source_credentials() {
+  if [[ -n "${CREDENTIALS_PATH-}" ]]; then
+    local cred_script
+    case "$OSTYPE" in
+      msys*|cygwin*) cred_script="$CREDENTIALS_PATH/1PassCLI.bat" ;;
+      *)             cred_script="$CREDENTIALS_PATH/1PassCLI.sh"  ;;
+    esac
 
-set_docker_path() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    export DOCKER="$HOME/Library/CloudStorage/Dropbox/matrix/docker"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    export DOCKER="$HOME/Dropbox/matrix/docker"
-  else
-    echo "Warning: Unsupported operating system. Cannot set DOCKER." >&2
-  fi
-}
-
-set_datalib_path() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    export DATALIB="$HOME/Library/CloudStorage/SynologyDrive-dataLib"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    export DATALIB="$HOME/Synology-dataLib"
-  else
-    echo "Warning: Unsupported operating system. Cannot set DATALIB." >&2
-  fi
-}
-
-
-# Function to detect and set the base directory dynamically
-set_base_dir() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    if [[ -d "$HOME/Library/CloudStorage/Dropbox/matrix/shellscripts" ]]; then
-      export BASE_DIR="$HOME/Library/CloudStorage/Dropbox/matrix/shellscripts"
-    elif [[ -d "$HOME/Documents/tools/cliUtils" ]]; then
-      export BASE_DIR="$HOME/Documents/tools/cliUtils"
+    if [[ -f "$cred_script" ]]; then
+      source "$cred_script"
     else
-      echo "Warning: Could not determine BASE_DIR on macOS." >&2
-    fi
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    if [[ -d "$HOME/Dropbox/matrix/shellscripts" ]]; then
-      export BASE_DIR="$HOME/Dropbox/matrix/shellscripts"
-    else
-      echo "Warning: Could not determine BASE_DIR on Linux." >&2
-    fi
-  else
-    echo "Warning: Unsupported operating system." >&2
-  fi
-}
-
-# Ensure the credentials path is set and validate the credentials script
-check_credentials_path() {
-  if [[ -z "$CREDENTIALS_PATH" ]]; then
-    echo "Warning: CREDENTIALS_PATH is not set. Ensure it is defined in the .env file or set manually." >&2
-  else
-    # Check if the credentials script exists
-    local credentials_script="$CREDENTIALS_PATH/1PassCLI.sh"
-    if [[ ! -f "$credentials_script" ]]; then
-      echo "Warning: Credentials script not found at $credentials_script. Ensure the script exists." >&2
-    else
-      # Source the credentials script if it exists
-      source "$credentials_script"
+      echo "Warning: Credentials script not found at $cred_script" >&2
     fi
   fi
 }
 
-# Initialize setup without exiting on error
-set_dropbox_path
-set_docker_path
-set_base_dir
-load_env_variables
-check_credentials_path
+# 9) Main initializer
+main() {
+  set_xdg_config
+  set_dropbox_path
+  set_global_env
+  set_docker_path
+  set_datalib_path
+  set_base_dir
+  load_env_variables
+  source_credentials
+}
+
+# Run it
+main
