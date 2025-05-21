@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Commit & push helper
 lazygit() {
   if [ -z "$1" ]; then
     echo "Usage: lazygit <commit message> [branch]"
@@ -14,14 +15,19 @@ lazygit() {
   git push origin "$branch"
 }
 
+# Merge source into target, with a commit message, no editor
 merge_branch() {
   if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Usage: merge_branch <source-branch> <target-branch>"
     return 1
   fi
+
+  local src="$1"
+  local tgt="$2"
+
   git fetch origin
-  git checkout "$2"
-  git pull origin "$2"
-  git merge --no-ff "$1"
-  git push origin "$2"
+  git checkout "$tgt"
+  git pull origin "$tgt"
+  git merge --no-ff "$src" -m "Merge branch '$src' into $tgt"
+  git push origin "$tgt"
 }

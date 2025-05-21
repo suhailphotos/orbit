@@ -39,14 +39,25 @@ set_docker_path() {
 set_datalib_path() {
   case "$OSTYPE" in
     darwin*)      DATALIB="$HOME/Library/CloudStorage/SynologyDrive-dataLib" ;;
-    linux-gnu*)   DATALIB="$HOME/Synology-dataLib"                         ;;
+    linux-gnu*)   DATALIB="/mnt/dataLib"                         ;;
     msys*|cygwin*) DATALIB="$USERPROFILE/Synology-dataLib"                 ;;
     *)            DATALIB="$HOME/Synology-dataLib"                        ;;
   esac
   export DATALIB
 }
 
-# 6) BASE_DIR detection (where your shellscripts live)
+# 6) 
+set_ml4vfx_path() {
+  case "$OSTYPE" in
+    darwin*)      ML4VFX="$HOME/Library/CloudStorage/SynologyDrive-dataLib/threeD/courses/05_Machine_Learning_in_VFX" ;;
+    linux-gnu*)   ML4VFX="/mnt/dataLib/threeD/courses/05_Machine_Learning_in_VFX"                         ;;
+    msys*|cygwin*) ML4VFX="$USERPROFILE/Synology-dataLib/threeD/courses/05_Machine_Learning_in_VFX"                 ;;
+    *)            ML4VFX="$HOME/Synology-dataLib/threeD/courses/05_Machine_Learning_in_VFX"                        ;;
+  esac
+  export ML4VFX
+}
+
+# 7) BASE_DIR detection (where your shellscripts live)
 set_base_dir() {
   if [[ -d "$DROPBOX/matrix/shellscripts" ]]; then
     BASE_DIR="$DROPBOX/matrix/shellscripts"
@@ -58,7 +69,7 @@ set_base_dir() {
   export BASE_DIR
 }
 
-# 7) Load .env from $BASE_DIR/envars/.env (skip blank/comment, support '=' in values)
+# 8) Load .env from $BASE_DIR/envars/.env (skip blank/comment, support '=' in values)
 load_env_variables() {
   local env_file="$BASE_DIR/envars/.env"
   if [[ -f "$env_file" ]]; then
@@ -75,7 +86,7 @@ load_env_variables() {
   fi
 }
 
-# 8) Source credentials helper if CREDENTIALS_PATH is defined
+# 9) Source credentials helper if CREDENTIALS_PATH is defined
 source_credentials() {
   if [[ -n "${CREDENTIALS_PATH-}" ]]; then
     local cred_script
@@ -92,13 +103,14 @@ source_credentials() {
   fi
 }
 
-# 9) Main initializer
+# 10) Main initializer
 main() {
   set_xdg_config
   set_dropbox_path
   set_global_env
   set_docker_path
   set_datalib_path
+  set_ml4vfx_path
   set_base_dir
   load_env_variables
   source_credentials
