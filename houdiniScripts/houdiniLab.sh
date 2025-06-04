@@ -1,23 +1,42 @@
 #!/bin/bash
 
 houdiniLab() {
-    local houdini_version="20.5.278"  # Default Houdini version
-    local optional_command="$1"
+    local user_version="$1"          # Version override, if provided (e.g., 20.5.584)
+    local command="$2"               # Optional subcommand (-e or -hou)
+    local houdini_version
+
+    # Function to get latest Houdini version installed
+    get_latest_houdini_version() {
+        ls -d /Applications/Houdini/Houdini* 2>/dev/null | \
+            sed 's|/Applications/Houdini/Houdini||' | sort -Vr | head -n 1
+    }
+
+    # If user provided a version as first argument, use it; otherwise use latest
+    if [[ -n "$user_version" && ! "$user_version" =~ ^- ]]; then
+        houdini_version="$user_version"
+        # Check if directory exists
+        if [[ ! -d "/Applications/Houdini/Houdini$houdini_version" ]]; then
+            echo "Warning: Houdini version $houdini_version not found in /Applications/Houdini/" >&2
+            return 1
+        fi
+        shift   # Remove version arg, so next arg is the command
+        command="$1"
+    else
+        houdini_version=$(get_latest_houdini_version)
+        if [[ -z "$houdini_version" ]]; then
+            echo "Warning: No Houdini install found in /Applications/Houdini/" >&2
+            return 1
+        fi
+    fi
 
     set_houdini_user_pref() {
-      if [[ -z "$HOUDINI_USER_PREF_DIR" ]]; then
-          export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/20.5"
-      fi
+        export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/${houdini_version%.*}"
     }
-    
-    
+
     change_dir_activate() {
-        # Check if already in the desired directory and environment is activated
         if [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" != "" ]]; then
-            # If not in the directory, change directory
             cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" || return 1
-        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" == ""  ]]; then
-            # If not in the directory and environment is already active, change directory
+        elif [[ "$(pwd)" != "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" && "$VIRTUAL_ENV" == "" ]]; then
             cd "$HOME/Library/CloudStorage/Dropbox/matrix/packages/houdiniLab" || return 1
             source "$(poetry env info --path)/bin/activate" || return 1
         fi
@@ -31,8 +50,9 @@ houdiniLab() {
         cd - || return 1
     }
 
-    if [ -n "$optional_command" ]; then
-        if [ "$optional_command" = "-e" ]; then
+    # Run actions
+    if [ -n "$command" ]; then
+        if [ "$command" = "-e" ]; then
             if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
                 change_dir_activate
                 set_houdini_user_pref
@@ -43,21 +63,17 @@ houdiniLab() {
                 echo "Environment variables are already active"
                 return 1
             fi
-        elif [ "$optional_command" = "-hou" ]; then
+        elif [ "$command" = "-hou" ]; then
             if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
                 change_dir_activate
-                #set_houdini_user_pref     Houdini user pref are set in all environments using setenvars.sh (so not necessary here)
                 set_env_vars
                 python3 ./houdiniutils/importhou/importhou.py || return 1
             else
                 change_dir_activate
-                #set_houdini_user_pref
                 python3 ./houdiniutils/importhou/importhou.py || return 1
             fi
         fi
     else
         change_dir_activate
-        #set_houdini_user_pref
     fi
 }
-

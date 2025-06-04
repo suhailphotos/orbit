@@ -91,6 +91,7 @@ create_env_function "pythonKitchen" "pythonKitchen" "pythonKitchen"
 create_env_function "ocioTools" "ocioTools" "ocioTools"
 create_env_function "helperScripts" "helperScripts" "helperScripts"
 create_env_function "Incept" "Incept" "Incept"
+create_env_function "pariVaha" "pariVaha" "pariVaha"
 
 create_publish_function() {
     local env_name="$1"
@@ -138,6 +139,8 @@ EOF
 create_publish_function "Incept" "Incept"
 create_publish_function "notionManager" "notionManager"
 create_publish_function "pythonKitchen" "pythonKitchen"
+create_publish_function "oauthManager" "oauthManager"
+create_publish_function "pariVaha" "pariVaha"
 
 # Function for HoudiniPublish (special case)
 houdiniPublish() {

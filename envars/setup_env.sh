@@ -103,7 +103,35 @@ source_credentials() {
   fi
 }
 
-# 10) Main initializer
+
+# 10) Houdini User Pref (macOS only; grabs latest SideFX install)
+set_houdini_user_pref_dir() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    local latest_version
+    latest_version=$(ls -d /Applications/Houdini/Houdini* 2>/dev/null | \
+      sed 's|/Applications/Houdini/Houdini||' | sort -Vr | head -n 1)
+    if [[ -n "$latest_version" ]]; then
+      export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/${latest_version%.*}"
+    else
+      export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini"
+      echo "Warning: Could not find a Houdini install in /Applications/Houdini." >&2
+    fi
+  fi
+}
+
+# 11) Obsidian path (Obsidian vault path on Dropbox, home on Linux/Windows)
+set_obsedian_path() {
+  case "$OSTYPE" in
+    darwin*)      OBSIDIAN="$HOME/Library/CloudStorage/Dropbox/matrix/obsidian/jnanaKosha" ;;
+    linux-gnu*)   OBSIDIAN="$HOME/Dropbox/matrix/obsidian/jnanaKosha"                         ;;
+    msys*|cygwin*) OBSIDIAN="$USERPROFILE/Dropbox/matrix/obsidian/jnanaKosha"                 ;;
+    *)            OBSIDIAN="$HOME/Dropbox/matrix/obsidian/jnanaKosha"                        ;;
+  esac
+  export OBSIDIAN
+}
+
+
+# 11) Main initializer
 main() {
   set_xdg_config
   set_dropbox_path
@@ -112,8 +140,10 @@ main() {
   set_datalib_path
   set_ml4vfx_path
   set_base_dir
+  set_houdini_user_pref_dir
   load_env_variables
   source_credentials
+  set_obsedian_path
 }
 
 # Run it
