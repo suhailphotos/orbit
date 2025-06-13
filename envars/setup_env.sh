@@ -162,12 +162,14 @@ set_nebula_ai_paths() {
     export NEBULA_AI_EXPERIMENTS="$NEBULA_AI_ROOT/experiments"
     export NEBULA_AI_LOGS="$NEBULA_AI_ROOT/logs"
     export NEBULA_AI_SCRIPTS="$NEBULA_AI_ROOT/scripts"
+    export NEBULA_AI_PROJECTS="$NEBULA_AI_ROOT/projects"
   else
     export NEBULA_AI_MODELS=""
     export NEBULA_AI_DATASETS=""
     export NEBULA_AI_EXPERIMENTS=""
     export NEBULA_AI_LOGS=""
     export NEBULA_AI_SCRIPTS=""
+    export NEBULA_AI_PROJECTS=""
   fi
 }
 
