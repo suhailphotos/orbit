@@ -130,6 +130,47 @@ set_obsedian_path() {
   export OBSIDIAN
 }
 
+set_nebula_ai_paths() {
+  case "$OSTYPE" in
+    darwin*)   # macOS
+      if [[ -d "/Volumes/ai" ]]; then
+        export NEBULA_AI_ROOT="/Volumes/ai"
+        export NEBULA_AI_MOUNTED=1
+      else
+        export NEBULA_AI_ROOT=""
+        export NEBULA_AI_MOUNTED=0
+        echo "Warning: Nebula AI share /Volumes/ai not mounted." >&2
+      fi
+      ;;
+    linux-gnu*)   # Ubuntu/Linux VM
+      export NEBULA_AI_ROOT="/mnt/ai"
+      export NEBULA_AI_MOUNTED=1
+      ;;
+    msys*|cygwin*) # Windows (WSL, etc.)
+      export NEBULA_AI_ROOT="Z:/ai"
+      export NEBULA_AI_MOUNTED=1
+      ;;
+    *)
+      export NEBULA_AI_ROOT="$HOME/ai"
+      export NEBULA_AI_MOUNTED=0
+      ;;
+  esac
+
+  if [[ -n "$NEBULA_AI_ROOT" && -d "$NEBULA_AI_ROOT" ]]; then
+    export NEBULA_AI_MODELS="$NEBULA_AI_ROOT/models"
+    export NEBULA_AI_DATASETS="$NEBULA_AI_ROOT/datasets"
+    export NEBULA_AI_EXPERIMENTS="$NEBULA_AI_ROOT/experiments"
+    export NEBULA_AI_LOGS="$NEBULA_AI_ROOT/logs"
+    export NEBULA_AI_SCRIPTS="$NEBULA_AI_ROOT/scripts"
+  else
+    export NEBULA_AI_MODELS=""
+    export NEBULA_AI_DATASETS=""
+    export NEBULA_AI_EXPERIMENTS=""
+    export NEBULA_AI_LOGS=""
+    export NEBULA_AI_SCRIPTS=""
+  fi
+}
+
 
 # 11) Main initializer
 main() {
@@ -144,6 +185,7 @@ main() {
   load_env_variables
   source_credentials
   set_obsedian_path
+  set_nebula_ai_paths
 }
 
 # Run it
