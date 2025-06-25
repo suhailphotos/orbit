@@ -92,6 +92,8 @@ create_env_function "ocioTools" "ocioTools" "ocioTools"
 create_env_function "helperScripts" "helperScripts" "helperScripts"
 create_env_function "Incept" "Incept" "Incept"
 create_env_function "pariVaha" "pariVaha" "pariVaha"
+create_env_function "Lumiera" "Lumiera" "Lumiera"
+create_env_function "Ledu" "Ledu" "Ledu"
 
 create_publish_function() {
     local env_name="$1"
@@ -141,6 +143,8 @@ create_publish_function "notionManager" "notionManager"
 create_publish_function "pythonKitchen" "pythonKitchen"
 create_publish_function "oauthManager" "oauthManager"
 create_publish_function "pariVaha" "pariVaha"
+create_publish_function "Lumiera" "Lumiera"
+create_publish_function "Ledu" "Ledu"
 
 # Function for HoudiniPublish (special case)
 houdiniPublish() {
