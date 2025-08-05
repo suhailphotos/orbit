@@ -1,1 +1,1 @@
-echo "Hello Suhail"
+# core/bootstrap.zsh
