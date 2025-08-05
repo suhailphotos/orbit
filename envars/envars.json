@@ -1,9 +1,0 @@
-{
-  "system":{
-    "DROPBOX": "$HOME/Library/CloudStorage/Dropbox"
-    "MATRIX": "$HOME/Library/CloudStorage/Dropbox/matrix"
-    "VFX_LIB": "$HOME/Library/CloudStorage/SynologyDrive-NAS/threeD/lib",
-    "USD_LIB": "$HOME/Library/CloudStorage/SynologyDrive-NAS/threeD/lib/usd",
-    "HOUDINI_USER_PREF_DIR": "$HOME/Library/CloudStorage/Dropbox/appSettings/houdini/mac/20.5/"
-  }
-}
