@@ -6,7 +6,7 @@ source "$_ORBIT_DIR/core/detect_platform.zsh"
 source "$_ORBIT_DIR/core/path_helpers.zsh"
 
 # 1. Secrets – load first so later files can reference them
-[[ -f "$_ORBIT_DIR/secrets/.env" ]] && export $(grep -v '^#' "$_ORBIT_DIR/secrets/.env" | xargs)
+source "$_ORBIT_DIR/core/secrets.zsh"
 
 # 2. Environment variables (ordered)
 for f in $_ORBIT_DIR/modules/env/*.zsh(.N); do source "$f"; done

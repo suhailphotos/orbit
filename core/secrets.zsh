@@ -31,13 +31,12 @@ _orbit_load_secrets() {
   local envfile="$ORBIT_HOME/secrets/.env"
   local template="$ORBIT_HOME/secrets/.env.template"
 
-  # --- 1. .env wins ------------------------------------------------
+  # --- 1. Load .env if present -------------------------------------
   if [[ -f $envfile ]]; then
     orbit_load_dotenv "$envfile"
-    return
   fi
 
-  # --- 2. 1Password CLI -------------------------------------------
+  # --- 2. 1Password fills gaps ------------------------------------
   if _orbit_op_available; then
     _orbit_prepare_op
     if [[ -z $OP_SERVICE_ACCOUNT_TOKEN ]]; then
@@ -45,11 +44,11 @@ _orbit_load_secrets() {
       return
     fi
 
-    # Populate variables listed in the template file.
+    # Export any key that is *still unset* after .env
     if [[ -f $template ]]; then
       while IFS='=' read -r k _; do
         [[ -z $k || $k == \#* ]] && continue
-        export "$k"="$(op read "op://Personal/$k" 2>/dev/null || true)"
+        [[ -z ${!k} ]] && export "$k"="$(op read "op://Personal/$k" 2>/dev/null || true)"
       done <"$template"
     fi
     return
