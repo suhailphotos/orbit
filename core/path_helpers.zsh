@@ -10,6 +10,12 @@ orbit_load_dotenv() {
   while IFS='=' read -r k v; do
     [[ $k =~ ^# || -z $k ]] && continue
     eval v=\"${v}\"
+
+    # If the value looks like op://vault/item/field → fetch via 1Password
+    if [[ $v == op://* ]]; then
+      _orbit_prepare_op          # defined in secrets.zsh
+      v="$(op read "$v" 2>/dev/null || true)"
+    fi
     export "$k"="$v"
   done <"$file"
 }
