@@ -48,7 +48,7 @@ _orbit_load_secrets() {
     if [[ -f $template ]]; then
       while IFS='=' read -r k _; do
         [[ -z $k || $k == \#* ]] && continue
-        [[ -z ${!k} ]] && export "$k"="$(op read "op://Personal/$k" 2>/dev/null || true)"
+    #    [[ -z ${!k} ]] && export "$k"="$(op read "op://Personal/$k" 2>/dev/null || true)"
       done <"$template"
     fi
     return
