@@ -55,6 +55,7 @@ local orbit_projects=(
   usdUtils
   oauthManager
   pythonKitchen
+  houdiniLab
   ocioTools
   helperScripts
   Incept
