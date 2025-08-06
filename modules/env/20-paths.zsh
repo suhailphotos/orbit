@@ -1,22 +1,25 @@
 # modules/env/20-paths.zsh  ───────────────────────────────
-# General paths that don't include secrets
+# General paths that never contain secrets
+orbit_prepend_path "$HOME/.local/bin"
 
-# Docker root is always inside Dropbox
-export DOCKER="$DROPBOX/matrix/docker"
+# Dropbox & Matrix
+case "$ORBIT_PLATFORM" in
+  mac)   export DROPBOX="$HOME/Library/CloudStorage/Dropbox" ;;
+  linux) export DROPBOX="$HOME/Dropbox"                     ;;
+  wsl)   export DROPBOX="$USERPROFILE/Dropbox"              ;;
+  *)     export DROPBOX="$HOME/Dropbox"                     ;;
+esac
+export MATRIX="$DROPBOX/matrix"
+export DOCKER="$MATRIX/docker"
 
-# Synology-driven data library
+# Synology data library
 case "$ORBIT_PLATFORM" in
   mac)   export DATALIB="$HOME/Library/CloudStorage/SynologyDrive-dataLib" ;;
   linux) export DATALIB="/mnt/dataLib"                                     ;;
   wsl)   export DATALIB="$USERPROFILE/Synology-dataLib"                    ;;
   *)     export DATALIB="$HOME/Synology-dataLib"                           ;;
 esac
-
-# Machine-learning course
 export ML4VFX="$DATALIB/threeD/courses/05_Machine_Learning_in_VFX"
 
 # Obsidian vault
-case "$ORBIT_PLATFORM" in
-  mac)   export OBSIDIAN="$DROPBOX/matrix/obsidian/jnanaKosha" ;;
-  *)     export OBSIDIAN="$DROPBOX/matrix/obsidian/jnanaKosha" ;;
-esac
+export OBSIDIAN="$MATRIX/obsidian/jnanaKosha"
