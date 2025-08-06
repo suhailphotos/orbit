@@ -1,12 +1,9 @@
 # modules/functions/venv.zsh
 # ------------------------------------------------------------------
-# Jump into project virtual-envs  ->  usdUtils
-# Publish to PyPI                ->  publish_usdUtils
+# <envName>            – cd & activate env
+# publish_<envName>    – bump patch, build, poetry publish
 # ------------------------------------------------------------------
 
-############################################################
-# Activation helper
-############################################################
 _orbit_make_env() {
   local fname=$1 project=$2 conda=$3
 
@@ -26,27 +23,23 @@ ${fname}() {
 }"
 }
 
-############################################################
-# Publish helper (quote-safe)
-############################################################
 _orbit_make_publish() {
   local fname=$1 project=$2
-  eval "
-publish_${fname}() $(cat <<'EOF'
-{
-  local root="$DROPBOX/matrix/packages/'${project}'"
-  [[ -d "$root" ]] || { echo "Project not found: $root" >&2; return 1; }
+  eval "$(cat <<EOF
+publish_${fname}() {
+  local root="\$DROPBOX/matrix/packages/${project}"
+  [[ -d "\$root" ]] || { echo "Project not found: \$root" >&2; return 1; }
 
   (
-    cd "$root" || return
-    local line ver new_ver
-    line=$(grep -E '^version' pyproject.toml | head -1)
-    ver=${line#*\"}; ver=${ver%\"*}
-    IFS=. read -r M m p <<< "$ver"
-    new_ver="$M.$m.$((p+1))"
+    cd "\$root" || return
+    # read current version (assumes poetry style  x.y.z)
+    local ver new_ver
+    ver=\$(poetry version -s)
+    IFS=. read -r MAJ MIN PAT <<< "\$ver"
+    new_ver="\$MAJ.\$MIN.\$((PAT+1))"
 
-    sed -i.bak -E "s/(version = \")$ver(\".*)/\\1$new_ver\\2/" pyproject.toml
-    echo "Publishing '${project}': $ver → $new_ver"
+    echo "Publishing ${project}: \$ver → \$new_ver"
+    poetry version "\$new_ver"
     poetry publish --build
   )
 }
@@ -54,9 +47,7 @@ EOF
 )"
 }
 
-############################################################
-# Declare environments once
-############################################################
+# ------------------------- declare envs -------------------------
 for spec in \
   "usdUtils       usdUtils       usdUtils" \
   "oauthManager   oauthManager   oauthManager" \
@@ -69,13 +60,11 @@ for spec in \
   "Ledu           Ledu           Ledu"
 do
   set -- $spec
-  _orbit_make_env      "$1" "$2" "$3"
-  _orbit_make_publish  "$1" "$2"
+  _orbit_make_env     "$1" "$2" "$3"
+  _orbit_make_publish "$1" "$2"
 done
 
-############################################################
-# Special one-offs
-############################################################
+# ---------- special one-offs ----------
 houdiniPublish() {
   export PROJECT_ROOT="$HOME/.virtualenvs/houdiniPublish"
   cd "$PROJECT_ROOT" || return
@@ -90,5 +79,5 @@ notionManager() {
   elif [[ $ORBIT_PLATFORM == linux ]]; then
     conda activate notionUtils
   fi
-  export PREFECT_API_URL="${PREFECT_API_URL:-http://10.81.29.44:4200/api}"
+  export PREFECT_API_URL="\${PREFECT_API_URL:-http://10.81.29.44:4200/api}"
 }
