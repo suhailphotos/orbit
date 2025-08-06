@@ -4,25 +4,33 @@
 # publish_<envName>    – bump patch, build, poetry publish
 # ------------------------------------------------------------------
 
+############################################################
+# Activation helper — quote-safe
+############################################################
 _orbit_make_env() {
   local fname=$1 project=$2 conda=$3
 
-  eval "
+  eval "$(cat <<EOF
 ${fname}() {
-  local root=\"\$DROPBOX/matrix/packages/${project}\"
-  [[ -d \"\$root\" ]] || { echo \"Project not found: \$root\" >&2; return 1; }
+  local root="\$DROPBOX/matrix/packages/${project}"
+  [[ -d "\$root" ]] || { echo "Project not found: \$root" >&2; return 1; }
 
-  export PROJECT_ROOT=\"\$root\"
-  [[ \$PWD == \$root ]] || cd \"\$root\"
+  export PROJECT_ROOT="\$root"
+  [[ \$PWD == \$root ]] || cd "\$root"
 
   if [[ \$ORBIT_PLATFORM == mac ]]; then
-    [[ -n \$VIRTUAL_ENV ]] || source \"\$(poetry env info --path)/bin/activate\"
+    [[ -n \$VIRTUAL_ENV ]] || source "\$(poetry env info --path)/bin/activate"
   elif [[ \$ORBIT_PLATFORM == linux ]]; then
     [[ -n \$CONDA_PREFIX ]] || conda activate ${conda}
   fi
-}"
+}
+EOF
+)"
 }
 
+############################################################
+# Publish helper — already quote-safe
+############################################################
 _orbit_make_publish() {
   local fname=$1 project=$2
   eval "$(cat <<EOF
@@ -32,7 +40,6 @@ publish_${fname}() {
 
   (
     cd "\$root" || return
-    # read current version (assumes poetry style  x.y.z)
     local ver new_ver
     ver=\$(poetry version -s)
     IFS=. read -r MAJ MIN PAT <<< "\$ver"
