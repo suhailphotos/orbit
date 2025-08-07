@@ -1,73 +1,45 @@
 # modules/functions/nuke.zsh
-# ------------------------------------------------------------------
-# Nuke utility: Poetry env, directory, and command cases (template)
-# ------------------------------------------------------------------
+# mac-only; no-op elsewhere
+[[ $ORBIT_PLATFORM == mac ]] || {
+  nukeUtils() { echo "nukeUtils: macOS only."; }
+  return
+}
 
 nukeUtils() {
   local root="$DROPBOX/matrix/packages/nukeUtils"
-  local nuke_version="15.0v4"  # Update as needed; placeholder
-  local optional_command="$1"
+  local nuke_version="${NUKE_VERSION:-15.0v4}"   # override via env if needed
+  local cmd="$1"; shift
 
-  # -------- Helper: Activate env and cd if needed --------
-  change_dir_activate() {
-    if [[ "$PWD" != "$root" && -n "$VIRTUAL_ENV" ]]; then
-      cd "$root" || return 1
-    elif [[ "$PWD" != "$root" && -z "$VIRTUAL_ENV" ]]; then
-      cd "$root" || return 1
-      source "$(poetry env info --path)/bin/activate" || return 1
-    fi
+  _nuke_activate() {
+    [[ "$PWD" == "$root" ]] || cd "$root" || return 1
+    [[ -n $VIRTUAL_ENV ]] || source "$(poetry env info --path)/bin/activate"
   }
 
-  # -------- Placeholder: Nuke-specific envs or prefs --------
-  # set_nuke_user_pref() {
-  #   if [[ -z "$NUKE_USER_PREF_DIR" ]]; then
-  #     export NUKE_USER_PREF_DIR="$HOME/Library/Preferences/Nuke/${nuke_version}"
-  #   fi
-  # }
+  _nuke_prefs_and_paths() {
+    export NUKE_USER_DIR="$HOME/.nuke"
+    mkdir -p "$NUKE_USER_DIR"
+    local plugins="$root/plugins"
+    [[ -d "$plugins" ]] && export NUKE_PATH="$plugins:${NUKE_PATH}"
+  }
 
-  # set_env_vars() {
-  #   export PYTHONPATH="..."
-  #   export OTHER_NUKE_VARS="..."
-  #   # Add more as needed
-  # }
+  _nuke_launch() {
+    open -a "Nuke${nuke_version}" || echo "Could not find Nuke ${nuke_version} app bundle."
+  }
 
-  # -------- Command Logic --------
-
-  if [[ -n "$optional_command" ]]; then
-    if [[ "$optional_command" == "-e" ]]; then
-      if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
-        change_dir_activate
-        # set_nuke_user_pref
-        # set_env_vars
-      else
-        change_dir_activate
-        # set_nuke_user_pref
-        echo "Environment variables are already active"
-        return 1
-      fi
-
-    elif [[ "$optional_command" == "-hou" ]]; then
-      if [[ -z "$PYTHONPATH" && -z "$DYLD_INSERT_LIBRARIES" ]]; then
-        change_dir_activate
-        # set_nuke_user_pref
-        # set_env_vars
-        # python3 ./importhou/importhou.py || return 1
-      else
-        change_dir_activate
-        # set_nuke_user_pref
-        # python3 ./importhou/importhou.py || return 1
-      fi
-
-    # Add more subcommands as needed here, e.g.:
-    # elif [[ "$optional_command" == "launch" ]]; then
-    #   open -a "Nuke${nuke_version}"
-    #   return
-    fi
-
-  else
-    # No command: just activate and cd
-    change_dir_activate
-    # set_nuke_user_pref
-    # set_env_vars
-  fi
+  case "$cmd" in
+    -e)
+      _nuke_activate || return 1
+      _nuke_prefs_and_paths
+      echo "Nuke environment ready (Poetry venv + NUKE_PATH)."
+      ;;
+    launch)
+      _nuke_activate || true
+      _nuke_prefs_and_paths
+      _nuke_launch
+      ;;
+    *)
+      _nuke_activate
+      echo "In nukeUtils env. Use 'nukeUtils -e' or 'nukeUtils launch'."
+      ;;
+  esac
 }

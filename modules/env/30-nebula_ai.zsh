@@ -1,4 +1,4 @@
-# Nebula-AI mount and sub-paths
+# Nebula-AI mount and sub-paths (exists everywhere, value depends on platform)
 case "$ORBIT_PLATFORM" in
   mac)   root="/Volumes/ai" ;;
   linux) root="/mnt/ai"     ;;

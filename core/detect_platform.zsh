@@ -6,3 +6,7 @@ case "$OSTYPE" in
   *)          ORBIT_PLATFORM=other ;;
 esac
 export ORBIT_PLATFORM
+
+# Also record host (for host-specific env like CUDA/Conda)
+ORBIT_HOST="${ORBIT_HOST:-$(hostname -s 2>/dev/null || hostname)}"
+export ORBIT_HOST

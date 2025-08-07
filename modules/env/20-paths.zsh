@@ -1,16 +1,18 @@
 # modules/env/20-paths.zsh  ───────────────────────────────
-# General paths that never contain secrets
-orbit_prepend_path "$HOME/.local/bin"
+# Global vars (exist on all machines) with platform-specific values.
 
-# Dropbox & Matrix
+# Dropbox
 case "$ORBIT_PLATFORM" in
   mac)   export DROPBOX="$HOME/Library/CloudStorage/Dropbox" ;;
-  linux) export DROPBOX="$HOME/Dropbox"                     ;;
-  wsl)   export DROPBOX="$USERPROFILE/Dropbox"              ;;
-  *)     export DROPBOX="$HOME/Dropbox"                     ;;
+  linux) export DROPBOX="$HOME/Dropbox"                      ;;
+  wsl)   export DROPBOX="$USERPROFILE/Dropbox"               ;;
+  *)     export DROPBOX="$HOME/Dropbox"                      ;;
 esac
+
+# Matrix & common roots
 export MATRIX="$DROPBOX/matrix"
 export DOCKER="$MATRIX/docker"
+export BASE_DIR="$MATRIX/shellscripts"
 
 # Synology data library
 case "$ORBIT_PLATFORM" in
@@ -19,6 +21,8 @@ case "$ORBIT_PLATFORM" in
   wsl)   export DATALIB="$USERPROFILE/Synology-dataLib"                    ;;
   *)     export DATALIB="$HOME/Synology-dataLib"                           ;;
 esac
+
+# ML4VFX course
 export ML4VFX="$DATALIB/threeD/courses/05_Machine_Learning_in_VFX"
 
 # Obsidian vault
