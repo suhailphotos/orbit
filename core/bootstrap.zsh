@@ -11,8 +11,8 @@ source "$_ORBIT_DIR/core/secrets.zsh"
 # 2) Environment (ordered)
 for f in $_ORBIT_DIR/modules/env/*.zsh(.N); do source "$f"; done
 
-# 3) Aliases & functions
-source "$_ORBIT_DIR/modules/aliases.zsh"
+# 3. Aliases and functions
+for f in $_ORBIT_DIR/modules/aliases/*.zsh(.N); do source "$f"; done
 for f in $_ORBIT_DIR/modules/functions/*.zsh(.N); do source "$f"; done
 
 # Optional legacy helpers (Cloudflare/Tailscale if present)
