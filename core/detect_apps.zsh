@@ -11,19 +11,20 @@ if [[ ${ORBIT_FORCE_NO_HOUDINI:-0} == 1 ]]; then
 else
   if [[ $ORBIT_PLATFORM == mac ]]; then
     # Example: /Applications/Houdini/Houdini20.5.123
-    _dir="$(ls -1d /Applications/Houdini/Houdini* 2>/dev/null | sort -r | head -n1)"
+    _dir="$(ls -1d /Applications/Houdini/Houdini* 2>/dev/null | sort -Vr | head -n 1)"
     if [[ -n $_dir ]]; then
       ORBIT_HAS_HOUDINI=1
       ORBIT_HOUDINI_ROOT="$_dir"
-      ORBIT_HOUDINI_VERSION="${_dir:t#Houdini}"  # "20.5.123"
+      # NEST THE EXPANSION: first :t (tail), then remove prefix "Houdini"
+      ORBIT_HOUDINI_VERSION="${${_dir:t}#Houdini}"  # "20.5.123"
     fi
   elif [[ $ORBIT_PLATFORM == linux ]]; then
     # Example: /opt/hfs20.5.123
-    _dir="$(ls -1d /opt/hfs* 2>/dev/null | sort -r | head -n1)"
+    _dir="$(ls -1d /opt/hfs* 2>/dev/null | sort -Vr | head -n 1)"
     if [[ -n $_dir ]]; then
       ORBIT_HAS_HOUDINI=1
       ORBIT_HOUDINI_ROOT="$_dir"
-      ORBIT_HOUDINI_VERSION="${_dir:t#hfs}"      # "20.5.123"
+      ORBIT_HOUDINI_VERSION="${${_dir:t}#hfs}"      # "20.5.123"
     elif command -v hconfig >/dev/null 2>&1; then
       ORBIT_HAS_HOUDINI=1
       ORBIT_HOUDINI_ROOT="${HFS:-}"
