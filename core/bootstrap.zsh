@@ -4,6 +4,7 @@ setopt EXTENDED_GLOB
 _ORBIT_DIR=${0:A:h:h}    # path to repo root
 source "$_ORBIT_DIR/core/detect_platform.zsh"
 source "$_ORBIT_DIR/core/path_helpers.zsh"
+source "$_ORBIT_DIR/core/detect_apps.zsh"
 
 # 1) Secrets first
 source "$_ORBIT_DIR/core/secrets.zsh"
