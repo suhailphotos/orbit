@@ -1,10 +1,7 @@
 # modules/functions/houdini.zsh
 # If Houdini isn't installed, define stubs and exit quietly
 if [[ "${ORBIT_HAS_HOUDINI:-0}" != 1 ]]; then
-  houdiniUtils() {
-    echo "Houdini not available on this machine."
-    return 1
-  }
+  houdiniUtils() { return 1; }   # silent
   return
 fi
 

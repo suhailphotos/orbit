@@ -2,19 +2,13 @@
 
 # If Nuke isn't installed, define a harmless stub and exit quietly
 if [[ "${ORBIT_HAS_NUKE:-0}" != 1 ]]; then
-  nukeUtils() {
-    echo "Nuke not available on this machine."
-    return 1
-  }
+  nukeUtils() { return 1; }      # silent
   return
 fi
 
-# mac-only helpers for now; stub elsewhere
+# If you want mac-only:
 if [[ $ORBIT_PLATFORM != mac ]]; then
-  nukeUtils() {
-    echo "nukeUtils: macOS only in this repo."
-    return 1
-  }
+  nukeUtils() { return 1; }      # silent
   return
 fi
 
