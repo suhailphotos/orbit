@@ -53,13 +53,13 @@ local orbit_projects=(
   usdUtils
   oauthManager
   pythonKitchen
-  houdiniLab
   ocioTools
   helperScripts
   Incept
   pariVaha
   Lumiera
   Ledu
+  hdrUtils
 )
 
 for project in "${orbit_projects[@]}"; do
