@@ -15,13 +15,15 @@ if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
 
   # Make sure a theme (if present) is honored:
   # EZA_COLORS / LS_COLORS override theme.yml, so clear them when using eza.
-  unset EZA_COLORS LS_COLORS
+  unset EZA_COLORS LS_COLORS   # keep theme.yml effective
 
   _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
-  alias ls="eza --group-directories-first${_eza_icons}"
-  alias ll="eza -lah --group-directories-first${_eza_icons}"
-  alias la="eza -la --group-directories-first${_eza_icons}"
-  alias tree="eza --tree --group-directories-first${_eza_icons}"
+  _eza_common="--group-directories-first --hyperlink=never${_eza_icons}"
+
+  alias ls="eza ${_eza_common}"
+  alias ll="eza -lah ${_eza_common}"
+  alias la="eza -la ${_eza_common}"
+  alias tree="eza --tree ${_eza_common}"
 fi
 
 # eza theme
