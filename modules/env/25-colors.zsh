@@ -1,32 +1,23 @@
 # modules/env/25-colors.zsh
-# Unified, minimal color config for common CLIs. No OMZ required.
+# Minimal color setup; prefer eza, fall back gracefully.
 
-# Allow ANSI colors to pass through pagers
 export LESS='-R'
 export PAGER="${PAGER:-less}"
 
-# ---- feature toggles (override in host/env if you like) ----
-: ${ORBIT_USE_EZA:=1}     # 1 = prefer eza when available, 0 = use ls/gls
-: ${ORBIT_LS_ICONS:=0}    # 1 = show icons with eza, 0 = no icons (default)
+: ${ORBIT_USE_EZA:=1}   # 1 = prefer eza, 0 = use ls/gls
+: ${ORBIT_LS_ICONS:=0}  # 1 = show icons with eza
+
+# Point eza at your theme; keep defaults otherwise
+export EZA_CONFIG_DIR="${EZA_CONFIG_DIR:-$HOME/.config/eza}"
+export EZA_THEME="${EZA_THEME:-custom}"   # use $EZA_CONFIG_DIR/theme.yml when present
+unset EZA_COLORS                          # don't let legacy color maps override YAML
+# leave LS_COLORS alone so non-eza tools can still use it
 
 _have_eza=0
 if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _have_eza=1
-
-  # Make sure theme.yml is honored.
-  unset EZA_COLORS LS_COLORS
-
-  # Work out how to disable hyperlinks on this eza version.
-  if eza --help 2>&1 | command grep -q -- '--no-hyperlink'; then
-    _eza_hl='--no-hyperlink'              # preferred if supported
-  else
-    _eza_hl=''                             # boolean only; disable via env
-    export EZA_HYPERLINKS=0
-    export EXA_HYPERLINKS=0               # for older exa forks
-  fi
-
   _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
-  _eza_common="--group-directories-first ${_eza_hl}${_eza_icons}"
+  _eza_common="--group-directories-first${_eza_icons}"
 
   alias ls="eza ${_eza_common}"
   alias ll="eza -lah ${_eza_common}"
@@ -34,22 +25,6 @@ if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   alias tree="eza --tree ${_eza_common}"
 fi
 
-# eza theme
-export EZA_CONFIG_DIR="${EZA_CONFIG_DIR:-$HOME/.config/eza}"
-if [[ ! -f "$EZA_CONFIG_DIR/theme.yml" ]]; then
-  mkdir -p "$EZA_CONFIG_DIR"
-  cat > "$EZA_CONFIG_DIR/theme.yml" <<'YML'
-# Minimal starter: remove underline from README(.md) and all *.md
-filenames:
-  "README":        { filename: { is_underline: false, foreground: Cyan, is_bold: true } }
-  "README.md":     { filename: { is_underline: false, foreground: Cyan, is_bold: true } }
-
-extensions:
-  "md":            { filename: { is_underline: false, foreground: Cyan } }
-YML
-fi
-
-# If we don't have (or don't want) eza, keep your colored ls/tree setup
 if (( !_have_eza )); then
   case "$ORBIT_PLATFORM" in
     mac)
@@ -76,14 +51,14 @@ if (( !_have_eza )); then
   esac
 fi
 
-# bat instead of cat (Debian names it batcat)
+# bat > cat (optional)
 if command -v bat >/dev/null 2>&1; then
   alias cat='bat --paging=never --style=plain'
 elif command -v batcat >/dev/null 2>&1; then
   alias cat='batcat --paging=never --style=plain'
 fi
 
-# Color grep (prefer GNU if present, else fallback to --color=auto if supported)
+# grep colors
 if command -v ggrep >/dev/null 2>&1; then
   alias grep='ggrep --color=auto'
   alias egrep='ggrep -E --color=auto'
@@ -93,26 +68,9 @@ elif grep --help 2>&1 | command grep -q -- '--color'; then
   alias egrep='grep -E --color=auto'
   alias fgrep='grep -F --color=auto'
 fi
-# Optional GREP_COLORS:
-# export GREP_COLORS='ms=01;31:mc=01;31:fn=35:ln=32:bn=32:se=36'
 
-# Color diff: prefer delta (great with git), else colordiff if installed
-if command -v delta >/dev/null 2>&1; then
-  export GIT_PAGER='delta'
-  export DELTA_FEATURES='line-numbers decorations'
-elif command -v colordiff >/dev/null 2>&1; then
-  alias diff='colordiff'
-fi
-
-# mac-specific shims for GNU sed/awk (independent of eza/ls choice)
+# mac shims for GNU sed/awk (optional)
 if [[ $ORBIT_PLATFORM == mac ]]; then
-  command -v gsed  >/dev/null 2>&1 && alias sed='gsed'
-  command -v gawk  >/dev/null 2>&1 && alias awk='gawk'
-  # Optional: GNU find/xargs
-  # command -v gfind  >/dev/null 2>&1 && alias find='gfind'
-  # command -v gxargs >/dev/null 2>&1 && alias xargs='gxargs'
+  command -v gsed >/dev/null 2>&1 && alias sed='gsed'
+  command -v gawk >/dev/null 2>&1 && alias awk='gawk'
 fi
-
-# Ripgrep/fd already colorize by default.
-# Ensure terminal supports colors:
-#   echo $TERM   (expect xterm-256color) ; tput colors
