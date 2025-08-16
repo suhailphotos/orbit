@@ -12,12 +12,31 @@ export PAGER="${PAGER:-less}"
 _have_eza=0
 if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _have_eza=1
-  _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
 
+  # Make sure a theme (if present) is honored:
+  # EZA_COLORS / LS_COLORS override theme.yml, so clear them when using eza.
+  unset EZA_COLORS LS_COLORS
+
+  _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
   alias ls="eza --group-directories-first${_eza_icons}"
   alias ll="eza -lah --group-directories-first${_eza_icons}"
   alias la="eza -la --group-directories-first${_eza_icons}"
   alias tree="eza --tree --group-directories-first${_eza_icons}"
+fi
+
+# eza theme
+export EZA_CONFIG_DIR="${EZA_CONFIG_DIR:-$HOME/.config/eza}"
+if [[ ! -f "$EZA_CONFIG_DIR/theme.yml" ]]; then
+  mkdir -p "$EZA_CONFIG_DIR"
+  cat > "$EZA_CONFIG_DIR/theme.yml" <<'YML'
+# Minimal starter: remove underline from README(.md) and all *.md
+filenames:
+  "README":        { filename: { is_underline: false, foreground: Cyan, is_bold: true } }
+  "README.md":     { filename: { is_underline: false, foreground: Cyan, is_bold: true } }
+
+extensions:
+  "md":            { filename: { is_underline: false, foreground: Cyan } }
+YML
 fi
 
 # If we don't have (or don't want) eza, keep your colored ls/tree setup
