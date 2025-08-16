@@ -21,8 +21,7 @@ for f in $_ORBIT_DIR/modules/functions/*.zsh(.N); do source "$f"; done
 
 # 4) Completions — lazy init on first prompt
 if [[ -o interactive && ${ORBIT_ENABLE_COMPLETIONS:-1} -eq 1 ]]; then
-  autoload -Uz add-zsh-hook compinit   # <-- compinit must be autoloaded
-
+  autoload -Uz add-zsh-hook compinit
   _orbit_load_completions() {
     [[ -d "$_ORBIT_DIR/modules/completions" ]] && fpath=($_ORBIT_DIR/modules/completions $fpath)
     if ! typeset -f _main_complete >/dev/null; then
@@ -31,12 +30,8 @@ if [[ -o interactive && ${ORBIT_ENABLE_COMPLETIONS:-1} -eq 1 ]]; then
     fi
     add-zsh-hook -d precmd _orbit_load_completions
   }
-
   add-zsh-hook precmd _orbit_load_completions
 fi
-
-# only attach in interactive shells
-[[ -o interactive ]] && add-zsh-hook precmd _orbit_load_completions
 
 # 5) Prompt (interactive only)
 if [[ -o interactive && -z ${ORBIT_DISABLE_PROMPT:-} ]]; then
