@@ -27,3 +27,27 @@ _orbit_load_completions() {
   add-zsh-hook -d precmd _orbit_load_completions
 }
 add-zsh-hook precmd _orbit_load_completions
+
+# 5) Prompt (interactive only)
+if [[ -o interactive && -z ${ORBIT_DISABLE_PROMPT:-} ]]; then
+  case "${ORBIT_PROMPT:-auto}" in
+    starship|auto)
+      if source "$_ORBIT_DIR/modules/prompt/starship.zsh" 2>/dev/null; then
+        : # starship OK
+      elif source "$_ORBIT_DIR/modules/prompt/p10k.zsh" 2>/dev/null; then
+        : # p10k fallback OK
+      else
+        : # no prompt engine available; use default PS1
+      fi
+      ;;
+    p10k)
+      if source "$_ORBIT_DIR/modules/prompt/p10k.zsh" 2>/dev/null; then
+        : # p10k OK
+      elif source "$_ORBIT_DIR/modules/prompt/starship.zsh" 2>/dev/null; then
+        : # starship fallback OK
+      else
+        : # nothing
+      fi
+      ;;
+  esac
+fi
