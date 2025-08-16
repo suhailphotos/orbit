@@ -13,12 +13,20 @@ _have_eza=0
 if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _have_eza=1
 
-  # Make sure a theme (if present) is honored:
-  # EZA_COLORS / LS_COLORS override theme.yml, so clear them when using eza.
-  unset EZA_COLORS LS_COLORS   # keep theme.yml effective
+  # Make sure theme.yml is honored.
+  unset EZA_COLORS LS_COLORS
+
+  # Work out how to disable hyperlinks on this eza version.
+  if eza --help 2>&1 | command grep -q -- '--no-hyperlink'; then
+    _eza_hl='--no-hyperlink'              # preferred if supported
+  else
+    _eza_hl=''                             # boolean only; disable via env
+    export EZA_HYPERLINKS=0
+    export EXA_HYPERLINKS=0               # for older exa forks
+  fi
 
   _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
-  _eza_common="--group-directories-first --hyperlink=never${_eza_icons}"
+  _eza_common="--group-directories-first ${_eza_hl}${_eza_icons}"
 
   alias ls="eza ${_eza_common}"
   alias ll="eza -lah ${_eza_common}"
