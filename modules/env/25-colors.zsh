@@ -5,17 +5,22 @@
 export LESS='-R'
 export PAGER="${PAGER:-less}"
 
-# ----- Prefer enhanced tools if present -----
+# ---- feature toggles (override in host/env if you like) ----
+: ${ORBIT_USE_EZA:=1}     # 1 = prefer eza when available, 0 = use ls/gls
+: ${ORBIT_LS_ICONS:=0}    # 1 = show icons with eza, 0 = no icons (default)
+
 _have_eza=0
-if command -v eza >/dev/null 2>&1; then
+if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _have_eza=1
-  alias ls='eza --group-directories-first --icons=auto'
-  alias ll='eza -lah --group-directories-first --icons=auto'
-  alias la='eza -la --group-directories-first --icons=auto'
-  alias tree='eza --tree --group-directories-first --icons=auto'
+  _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
+
+  alias ls="eza --group-directories-first${_eza_icons}"
+  alias ll="eza -lah --group-directories-first${_eza_icons}"
+  alias la="eza -la --group-directories-first${_eza_icons}"
+  alias tree="eza --tree --group-directories-first${_eza_icons}"
 fi
 
-# If we don't have eza, pick a colored ls per-OS (and prefer GNU ls on mac)
+# If we don't have (or don't want) eza, keep your colored ls/tree setup
 if (( !_have_eza )); then
   case "$ORBIT_PLATFORM" in
     mac)
@@ -30,12 +35,14 @@ if (( !_have_eza )); then
         alias ll='ls -lah'
         alias la='ls -A'
       fi
+      alias tree='tree -C'
       ;;
     linux)
       command -v dircolors >/dev/null 2>&1 && eval "$(dircolors -b)"
       alias ls='ls --color=auto'
       alias ll='ls -lah --color=auto'
       alias la='ls -A --color=auto'
+      alias tree='tree -C'
       ;;
   esac
 fi
