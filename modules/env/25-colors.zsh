@@ -1,0 +1,82 @@
+# modules/env/25-colors.zsh
+# Unified, minimal color config for common CLIs. No OMZ required.
+
+# Allow ANSI colors to pass through pagers
+export LESS='-R'
+export PAGER="${PAGER:-less}"
+
+# ----- Prefer enhanced tools if present -----
+_have_eza=0
+if command -v eza >/dev/null 2>&1; then
+  _have_eza=1
+  alias ls='eza --group-directories-first --icons=auto'
+  alias ll='eza -lah --group-directories-first --icons=auto'
+  alias la='eza -la --group-directories-first --icons=auto'
+  alias tree='eza --tree --group-directories-first --icons=auto'
+fi
+
+# If we don't have eza, pick a colored ls per-OS (and prefer GNU ls on mac)
+if (( !_have_eza )); then
+  case "$ORBIT_PLATFORM" in
+    mac)
+      if command -v gls >/dev/null 2>&1; then
+        alias ls='gls --color=auto --group-directories-first'
+        alias ll='gls -lah --color=auto --group-directories-first'
+        alias la='gls -A --color=auto --group-directories-first'
+      else
+        export CLICOLOR=1
+        export LSCOLORS="${LSCOLORS:-Gxfxcxdxbxegedabagacad}"
+        alias ls='ls -G'
+        alias ll='ls -lah'
+        alias la='ls -A'
+      fi
+      ;;
+    linux)
+      command -v dircolors >/dev/null 2>&1 && eval "$(dircolors -b)"
+      alias ls='ls --color=auto'
+      alias ll='ls -lah --color=auto'
+      alias la='ls -A --color=auto'
+      ;;
+  esac
+fi
+
+# bat instead of cat (Debian names it batcat)
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat --paging=never --style=plain'
+elif command -v batcat >/dev/null 2>&1; then
+  alias cat='batcat --paging=never --style=plain'
+fi
+
+# Color grep (prefer GNU if present, else fallback to --color=auto if supported)
+if command -v ggrep >/dev/null 2>&1; then
+  alias grep='ggrep --color=auto'
+  alias egrep='ggrep -E --color=auto'
+  alias fgrep='ggrep -F --color=auto'
+elif grep --help 2>&1 | command grep -q -- '--color'; then
+  alias grep='grep --color=auto'
+  alias egrep='grep -E --color=auto'
+  alias fgrep='grep -F --color=auto'
+fi
+# Optional GREP_COLORS:
+# export GREP_COLORS='ms=01;31:mc=01;31:fn=35:ln=32:bn=32:se=36'
+
+# Color diff: prefer delta (great with git), else colordiff if installed
+if command -v delta >/dev/null 2>&1; then
+  export GIT_PAGER='delta'
+  export DELTA_FEATURES='line-numbers decorations'
+elif command -v colordiff >/dev/null 2>&1; then
+  alias diff='colordiff'
+fi
+
+# mac-specific shims for GNU sed/awk (independent of eza/ls choice)
+if [[ $ORBIT_PLATFORM == mac ]]; then
+  command -v gsed  >/dev/null 2>&1 && alias sed='gsed'
+  command -v gawk  >/dev/null 2>&1 && alias awk='gawk'
+  # Optional: GNU find/xargs
+  # command -v gfind  >/dev/null 2>&1 && alias find='gfind'
+  # command -v gxargs >/dev/null 2>&1 && alias xargs='gxargs'
+fi
+
+# Ripgrep/fd already colorize by default.
+# Ensure terminal supports colors:
+#   echo $TERM   (expect xterm-256color) ; tput colors
