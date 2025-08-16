@@ -19,14 +19,27 @@ for f in $_ORBIT_DIR/modules/functions/*.zsh(.N); do source "$f"; done
 # Optional legacy helpers (Cloudflare/Tailscale if present)
 [[ -f "$_ORBIT_DIR/modules/functions/external.zsh" ]] && source "$_ORBIT_DIR/modules/functions/external.zsh"
 
-# 4) Completions — lazy init on first prompt
-autoload -Uz add-zsh-hook
+# 4) Completions — lazy init on first prompt (interactive shells only)
+autoload -Uz add-zsh-hook compinit   # <-- compinit must be autoloaded
+
 _orbit_load_completions() {
+  # add Orbit completions dir (if you have any) before initializing
   [[ -d "$_ORBIT_DIR/modules/completions" ]] && fpath=($_ORBIT_DIR/modules/completions $fpath)
-  compinit
+
+  # initialize once; skip if already active
+  if ! typeset -f _main_complete >/dev/null; then
+    # keep the compdump in XDG cache; avoid prompts from compaudit if you’ve fixed perms
+    mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+    compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/compdump"
+    # If you *must* suppress insecure-dir prompts temporarily, use: compinit -u -d <path>
+  fi
+
+  # remove this hook so it only runs once
   add-zsh-hook -d precmd _orbit_load_completions
 }
-add-zsh-hook precmd _orbit_load_completions
+
+# only attach in interactive shells
+[[ -o interactive ]] && add-zsh-hook precmd _orbit_load_completions
 
 # 5) Prompt (interactive only)
 if [[ -o interactive && -z ${ORBIT_DISABLE_PROMPT:-} ]]; then
