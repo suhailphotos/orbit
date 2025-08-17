@@ -16,28 +16,20 @@ export EZA_CONFIG_DIR="${EZA_CONFIG_DIR:-$HOME/.config/eza}"
 unset EZA_COLORS   # ensure theme.yml (if any) isn't overridden globally
 
 _have_eza=0
-# ----- eza aliases with dotfile/dotdir dimming (overrides theme.yml) -----
 if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _have_eza=1
+
+  # Build common flags
   _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
   _eza_common="--group-directories-first${_eza_icons}"
 
-  # Styles (ANSI SGR codes)
-  : ${ORBIT_DOT_STYLE:='90;2'}      # bright-black + dim for ALL dotfiles/dirs
-  : ${ORBIT_README_STYLE:='0;36;1'} # reset + cyan + bold (no underline)
-  : ${ORBIT_MD_STYLE:='0;36'}       # reset + cyan for *.md (optional)
+  # Dim ALL dotfiles via per-alias EZA_COLORS so it doesn't clobber the theme:
+  _dotrule=".*=${ORBIT_DOTFILES_SGR}"
 
-  # Optional per-name overrides (colon-separated EZA_COLORS pairs)
-  : ${ORBIT_DOT_OVERRIDES:=''}      # e.g. ".git=90;2:.github=90;2"
-
-  # Build the EZA_COLORS string (order matters: later entries win)
-  _eza_colors=".*=${ORBIT_DOT_STYLE}:README=${ORBIT_README_STYLE}:README.md=${ORBIT_README_STYLE}:*.md=${ORBIT_MD_STYLE}"
-  [[ -n "${ORBIT_DOT_OVERRIDES}" ]] && _eza_colors="${_eza_colors}:${ORBIT_DOT_OVERRIDES}"
-
-  alias ls="EZA_COLORS='${_eza_colors}' eza ${_eza_common}"
-  alias la="EZA_COLORS='${_eza_colors}' eza -la ${_eza_common}"
-  alias ll="EZA_COLORS='${_eza_colors}' eza -lah ${_eza_common}"
-  alias tree="EZA_COLORS='${_eza_colors}' eza --tree ${_eza_common}"
+  alias ls='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza '"${_eza_common}"
+  alias la='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -la '"${_eza_common}"
+  alias ll='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -lah '"${_eza_common}"
+  alias tree='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza --tree '"${_eza_common}"
 fi
 
 # Fallback when eza isn't available
