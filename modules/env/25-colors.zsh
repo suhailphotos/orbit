@@ -24,12 +24,13 @@ if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
   _eza_common="--group-directories-first${_eza_icons}"
 
   # Dim ALL dotfiles via per-alias EZA_COLORS so it doesn't clobber the theme:
+  # inside the eza branch in 25-colors.zsh
   _dotrule=".*=${ORBIT_DOTFILES_SGR}"
-
-  alias ls='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza '"${_eza_common}"
-  alias la='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -la '"${_eza_common}"
-  alias ll='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -lah '"${_eza_common}"
-  alias tree='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza --tree '"${_eza_common}"
+  _eza_prepend="${_dotrule}"
+  alias ls="EZA_COLORS='${_eza_prepend}${EZA_COLORS:+:${EZA_COLORS}}' eza ${_eza_common}"
+  alias la="EZA_COLORS='${_eza_prepend}${EZA_COLORS:+:${EZA_COLORS}}' eza -la ${_eza_common}"
+  alias ll="EZA_COLORS='${_eza_prepend}${EZA_COLORS:+:${EZA_COLORS}}' eza -lah ${_eza_common}"
+  alias tree="EZA_COLORS='${_eza_prepend}${EZA_COLORS:+:${EZA_COLORS}}' eza --tree ${_eza_common}"
 fi
 
 # Fallback when eza isn't available
