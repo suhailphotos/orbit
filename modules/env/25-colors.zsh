@@ -17,19 +17,23 @@ unset EZA_COLORS   # ensure theme.yml (if any) isn't overridden globally
 
 _have_eza=0
 if (( ORBIT_USE_EZA )) && command -v eza >/dev/null 2>&1; then
-  _have_eza=1
-
-  # Build common flags
   _eza_icons="" ; (( ORBIT_LS_ICONS )) && _eza_icons=" --icons=auto"
   _eza_common="--group-directories-first${_eza_icons}"
 
-  # Dim ALL dotfiles via per-alias EZA_COLORS so it doesn't clobber the theme:
-  _dotrule=".*=${ORBIT_DOTFILES_SGR}"
+  : ${ORBIT_DOT_STYLE:='90;2'}  # bright-black + dim
+  # dot DIRECTORIES you want dimmed like dotfiles:
+  : ${ORBIT_DOT_DIRS:='.git .github .config .cache .vscode .idea .venv .mypy_cache .pytest_cache'}
 
-  alias ls='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza '"${_eza_common}"
-  alias la='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -la '"${_eza_common}"
-  alias ll='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza -lah '"${_eza_common}"
-  alias tree='EZA_COLORS="'"${_dotrule}"':${EZA_COLORS:-}" eza --tree '"${_eza_common}"
+  # Build EZA_COLORS: catch-all for dot *files*, then explicit dot dirs
+  _eza_colors=".*=${ORBIT_DOT_STYLE}"
+  for d in ${(s: :)ORBIT_DOT_DIRS}; do
+    _eza_colors="${_eza_colors}:${d}=${ORBIT_DOT_STYLE}"
+  done
+
+  alias ls="EZA_COLORS='${_eza_colors}' eza ${_eza_common}"
+  alias la="EZA_COLORS='${_eza_colors}' eza -la ${_eza_common}"
+  alias ll="EZA_COLORS='${_eza_colors}' eza -lah ${_eza_common}"
+  alias tree="EZA_COLORS='${_eza_colors}' eza --tree ${_eza_common}"
 fi
 
 # Fallback when eza isn't available
