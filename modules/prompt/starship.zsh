@@ -35,16 +35,16 @@ _prompt_set_py_name() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prompt_set_py_name
 
-# Force steady block cursor on every prompt redraw (DECSCUSR)
-_cursor_block() { printf '\e[2 q' }   # 2 = steady block
+# Force BLINKING block cursor on every prompt redraw (DECSCUSR Ps=1)
+_cursor_blink_block() { printf '\e[1 q' }  # 1 = blinking block
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd _cursor_block
+add-zsh-hook precmd _cursor_blink_block
 
 # If any plugin flips cursor by mode (vi-mode, etc.), pin it back:
 if [[ -o zle ]]; then
-  function zle-keymap-select { printf '\e[2 q' }
-  function zle-line-init     { printf '\e[2 q' }
-  function zle-line-finish   { printf '\e[2 q' }
+  function zle-keymap-select { printf '\e[1 q' }
+  function zle-line-init     { printf '\e[1 q' }
+  function zle-line-finish   { printf '\e[1 q' }
   zle -N zle-keymap-select
   zle -N zle-line-init
   zle -N zle-line-finish
