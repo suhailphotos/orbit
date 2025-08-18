@@ -35,6 +35,21 @@ _prompt_set_py_name() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prompt_set_py_name
 
+# Force steady block cursor on every prompt redraw (DECSCUSR)
+_cursor_block() { printf '\e[2 q' }   # 2 = steady block
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _cursor_block
+
+# If any plugin flips cursor by mode (vi-mode, etc.), pin it back:
+if [[ -o zle ]]; then
+  function zle-keymap-select { printf '\e[2 q' }
+  function zle-line-init     { printf '\e[2 q' }
+  function zle-line-finish   { printf '\e[2 q' }
+  zle -N zle-keymap-select
+  zle -N zle-line-init
+  zle -N zle-line-finish
+fi
+
 # Init Starship
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
