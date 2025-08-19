@@ -8,25 +8,26 @@ export ORBIT_PROMPT=${ORBIT_PROMPT:-auto}
 # Prefer Conda on this host (venv functions look at this flag)
 export ORBIT_USE_CONDA=1
 
-# --- Terminfo: make Ghostty entry visible inside conda/mamba envs ---
-# 1) Ensure a user-local compiled entry exists
+# --- Terminfo: make Ghostty visible to everything (incl. conda) ---
 if [[ "$TERM" == "xterm-ghostty" ]]; then
-  # Install to ~/.terminfo only if missing
   if [[ ! -e "$HOME/.terminfo/x/xterm-ghostty" ]]; then
     mkdir -p "$HOME/.terminfo"
-    infocmp -x xterm-ghostty > /tmp/xterm-ghostty.src 2>/dev/null && \
-      tic -x -o "$HOME/.terminfo" /tmp/xterm-ghostty.src && \
-      rm -f /tmp/xterm-ghostty.src
+    infocmp -x xterm-ghostty > /tmp/xg.src 2>/dev/null && \
+      tic -x -o "$HOME/.terminfo" /tmp/xg.src && rm -f /tmp/xg.src
   fi
 fi
 
-# 2) Point ncurses (including conda’s) at system + user terminfo
-#    (prepend our paths, keep anything that might already exist)
+# Use DIRS (works for all envs); don't set TERMINFO here
 if [[ -z "${TERMINFO_DIRS:-}" ]]; then
   export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo"
 else
   export TERMINFO_DIRS="$HOME/.terminfo:/usr/share/terminfo:$TERMINFO_DIRS"
 fi
+
+# Make sure nothing left TERMINFO pointing at an empty db
+unset TERMINFO
+
+
 
 # --- CUDA (only if present) ---
 CUDA_HOME_DEFAULT="/usr/local/cuda"
