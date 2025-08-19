@@ -35,23 +35,6 @@ _prompt_set_py_name() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prompt_set_py_name
 
-_no_flash_clear() {
-  # begin synchronized update (terminals that don't support it just ignore)
-  printf '\e[?2026h'
-  # hide cursor so the clear/redraw doesn't "blink"
-  printf '\e[?25l'
-  # clear screen (no scrollback) and home
-  printf '\e[H\e[2J'
-  zle redisplay
-  # show cursor and end sync update
-  printf '\e[?25h\e[?2026l'
-}
-zle -N _no_flash_clear
-bindkey '^L' _no_flash_clear        # Ctrl+L uses the no-flash clear
-# optional: make the `clear` command behave the same
-alias clear='_no_flash_clear'
-
-
 # Init Starship
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
