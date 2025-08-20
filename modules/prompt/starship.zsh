@@ -35,6 +35,17 @@ _prompt_set_py_name() {
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prompt_set_py_name
 
+# Not home flag for the folder icon
+starship_precmd_not_home() {
+  if [[ "$PWD" == "$HOME" ]]; then
+    unset STARSHIP_NOT_HOME
+  else
+    export STARSHIP_NOT_HOME=1
+  fi
+}
+typeset -ag precmd_functions
+precmd_functions+=starship_precmd_not_home
+
 # Init Starship
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
