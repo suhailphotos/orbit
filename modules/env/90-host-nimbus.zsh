@@ -1,6 +1,8 @@
 # modules/env/90-host-nimbus.zsh
 [[ $ORBIT_HOST == nimbus ]] || return
 
+orbit_prepend_path "$HOME/.cargo/bin"
+
 # If you want Starship on nimbus once installed, set it here.
 # Comment out to keep automatic selection.
 export ORBIT_PROMPT=${ORBIT_PROMPT:-auto}
