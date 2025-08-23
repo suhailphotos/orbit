@@ -56,5 +56,3 @@ if [[ -o interactive && -z ${ORBIT_DISABLE_PROMPT:-} ]]; then
       ;;
   esac
 fi
-
-dedupe_path
