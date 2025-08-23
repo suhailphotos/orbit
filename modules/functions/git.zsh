@@ -16,78 +16,104 @@ merge_branch() {
   git push origin "$2"
 }
 
-# Push ~/.config (worktree) to helix:config and fast-forward helix:main
-configpush() {
-  local repo=""
-  if [[ -d "$MATRIX/helix/.git" ]]; then
-    repo="$MATRIX/helix"
-  elif [[ -d "$HOME/.helix/.git" ]]; then
-    repo="$HOME/.helix"
-  else
-    echo "helix repo not found (looked in \$MATRIX/helix and ~/.helix)"; return 1
-  fi
+# ---- subtree settings -------------------------------------------------------
+# Where the config subtree lives inside the helix mono-repo:
+: ${ORBIT_HELIX_SUBTREE_PREFIX:=dotfiles/config/.config}
 
+# Which branch backs your ~/.config worktree:
+: ${ORBIT_CONFIG_BRANCH:=config}
+
+# Resolve helix repo path (prefer $MATRIX/helix, fallback to ~/.helix)
+_helix_repo_path() {
+  if [[ -d "$MATRIX/helix/.git" ]]; then
+    echo "$MATRIX/helix"
+  elif [[ -d "$HOME/.helix/.git" ]]; then
+    echo "$HOME/.helix"
+  else
+    return 1
+  fi
+}
+
+# Require clean repo (no staged/unstaged changes)
+_require_clean_repo() {
+  local repo="$1"
+  if ! git -C "$repo" diff --quiet || ! git -C "$repo" diff --cached --quiet; then
+    echo "Repo at $repo has uncommitted changes. Commit/stash before continuing." >&2
+    return 1
+  fi
+}
+
+# ---- cpush: push ~/.config, then integrate into helix/main via subtree pull --
+configpush() {
   local cfg="$HOME/.config"
+  local repo; repo="$(_helix_repo_path)" || { echo "helix repo not found"; return 1; }
+  local prefix="$ORBIT_HELIX_SUBTREE_PREFIX"
+  local msg="${1:-"chore(config): update from ${ORBIT_HOST:-$(hostname -s)} $(date +'%Y-%m-%d %H:%M')"}"
+
   if ! git -C "$cfg" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "~/.config is not a git worktree"; return 1
   fi
 
-  # default message includes host + timestamp
-  local msg="${1:-"chore(config): update from ${ORBIT_HOST:-$(hostname -s)} $(date +'%Y-%m-%d %H:%M')"}"
-
-  echo "→ Commit & push config worktree"
+  echo "→ Commit & push ~/.config → origin/${ORBIT_CONFIG_BRANCH}"
   git -C "$cfg" add -A
-  if git -C "$cfg" diff --cached --quiet; then
+  if ! git -C "$cfg" diff --cached --quiet; then
+    git -C "$cfg" commit -m "$msg" || return 1
+  else
     echo "  no changes to commit"
-  else
-    git -C "$cfg" commit -m "$msg"
   fi
-  git -C "$cfg" push origin HEAD || return 1
+  git -C "$cfg" push origin "HEAD:${ORBIT_CONFIG_BRANCH}" || return 1
 
-  echo "→ Fast-forward helix:main in repo $repo"
-  git -C "$repo" fetch -q origin || { echo "  fetch failed; skipping"; return 0; }
+  echo "→ Integrate into helix:main via subtree pull"
+  _require_clean_repo "$repo" || return 1
+  local cur; cur="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
 
-  # Is 'main' checked out in any worktree? If so, fast-forward there.
-  local main_wt
-  main_wt="$(git -C "$repo" worktree list --porcelain | awk '
-    $1=="worktree"{wt=$2}
-    $1=="branch" && $2=="refs/heads/main"{print wt}
-  ')"
+  git -C "$repo" fetch -q origin || return 1
+  git -C "$repo" checkout -q main || return 1
+  git -C "$repo" pull --ff-only || return 1
 
-  if [[ -n "$main_wt" ]]; then
-    # main is checked out somewhere (maybe $repo itself) → do an in-place FF merge
-    if git -C "$main_wt" merge --ff-only origin/main; then
-      echo "  main fast-forwarded in worktree: $main_wt"
-    else
-      echo "  main already up-to-date (or cannot fast-forward)."
-    fi
-  else
-    # main is not checked out in any worktree → safe to update the ref without switching branches
-    if git -C "$repo" show-ref --verify --quiet refs/heads/main; then
-      git -C "$repo" update-ref -m "ff main -> origin/main" \
-        refs/heads/main refs/remotes/origin/main \
-        && echo "  main advanced to origin/main (ref updated)."
-    else
-      # create the branch if it doesn't exist
-      git -C "$repo" branch main origin/main && echo "  main created from origin/main."
-    fi
-  fi
+  git -C "$repo" subtree pull \
+    --prefix="$prefix" \
+    origin "$ORBIT_CONFIG_BRANCH" \
+    -m "subtree pull: sync .config from ${ORBIT_CONFIG_BRANCH}" || return 1
+
+  # Optional: push updated main (comment out if you don't want this)
+  # git -C "$repo" push origin main || true
+
+  # go back to where you were if it wasn't main
+  [[ "$cur" != "main" ]] && git -C "$repo" checkout -q "$cur" || true
+  echo "✅ cpush complete."
 }
 
-
+# ---- cpull: refresh helix/main from origin/config, then update ~/.config -----
 configpull() {
-  local repo=""
-  if   [[ -d "$MATRIX/helix/.git" ]]; then repo="$MATRIX/helix"
-  elif [[ -d "$HOME/.helix/.git" ]]; then repo="$HOME/.helix"
-  else echo "helix repo not found"; return 1; fi
+  local cfg="$HOME/.config"
+  local repo; repo="$(_helix_repo_path)" || { echo "helix repo not found"; return 1; }
+  local prefix="$ORBIT_HELIX_SUBTREE_PREFIX"
 
-  echo "→ Update config worktree"
-  git -C "$HOME/.config" pull --ff-only || return 1
+  echo "→ Update helix:main from origin and subtree pull origin/${ORBIT_CONFIG_BRANCH}"
+  _require_clean_repo "$repo" || return 1
+  local cur; cur="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
 
-  echo "→ Update helix:main"
-  git -C "$repo" fetch origin
-  git -C "$repo" checkout -q main || true
-  git -C "$repo" merge --ff-only origin/main || true
+  git -C "$repo" fetch -q origin || return 1
+  git -C "$repo" checkout -q main || return 1
+  git -C "$repo" pull --ff-only || return 1
 
-  echo "config + main updated."
+  git -C "$repo" subtree pull \
+    --prefix="$prefix" \
+    origin "$ORBIT_CONFIG_BRANCH" \
+    -m "subtree pull: sync .config from ${ORBIT_CONFIG_BRANCH}" || return 1
+
+  # Optional: push updated main
+  # git -C "$repo" push origin main || true
+
+  [[ "$cur" != "main" ]] && git -C "$repo" checkout -q "$cur" || true
+
+  echo "→ Fast-forward ~/.config worktree to origin/${ORBIT_CONFIG_BRANCH}"
+  if git -C "$cfg" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$cfg" fetch -q origin || return 1
+    git -C "$cfg" pull --ff-only || return 1
+  else
+    echo "~/.config is not a git worktree; skipped." >&2
+  fi
+  echo "✅ cpull complete."
 }
