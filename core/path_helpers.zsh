@@ -1,8 +1,20 @@
 # core/path_helpers.zsh
 ########################################
 
+#orbit_prepend_path() {
+#  [[ -d $1 ]] && PATH="$1:${PATH:#$1(:|)}"
+#}
+
 orbit_prepend_path() {
-  [[ -d $1 ]] && PATH="$1:${PATH:#$1(:|)}"
+  local dir="$1"
+  [[ -d $dir ]] || return
+  path=($dir ${path:#$dir})
+}
+
+orbit_append_path() {
+  local dir="$1"
+  [[ -d $dir ]] || return
+  path=(${path:#$dir} $dir)
 }
 
 orbit_load_dotenv() {
