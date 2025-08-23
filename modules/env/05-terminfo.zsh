@@ -1,4 +1,4 @@
-# modules/env/15-terminfo.zsh
+# modules/env/05-terminfo.zsh
 # Make custom terminfo (e.g., xterm-ghostty) available to everything.
 # Safe to source on both mac & linux.
 
