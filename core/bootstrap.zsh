@@ -1,6 +1,12 @@
 # core/bootstrap.zsh
 setopt EXTENDED_GLOB
 
+# keep $path unique and sane; use the array, not the string
+typeset -U path
+
+# baseline system dirs first (mac paths first, harmless on linux)
+path=(/opt/homebrew/bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $path)
+
 _ORBIT_DIR=${0:A:h:h}    # path to repo root
 source "$_ORBIT_DIR/core/detect_platform.zsh"
 source "$_ORBIT_DIR/core/path_helpers.zsh"
