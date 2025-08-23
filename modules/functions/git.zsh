@@ -45,16 +45,35 @@ configpush() {
   git -C "$cfg" push origin HEAD || return 1
 
   echo "→ Fast-forward helix:main in repo $repo"
-  git -C "$repo" fetch origin
-  # stay on whatever branch you're on; just advance main silently
-  if git -C "$repo" show-ref --verify --quiet refs/heads/main; then
-    git -C "$repo" branch --quiet --force main origin/main || true
-  else
-    git -C "$repo" checkout -q -b main origin/main || true
-  fi
+  git -C "$repo" fetch -q origin || { echo "  fetch failed; skipping"; return 0; }
 
-  echo "config pushed; main updated."
+  # Is 'main' checked out in any worktree? If so, fast-forward there.
+  local main_wt
+  main_wt="$(git -C "$repo" worktree list --porcelain | awk '
+    $1=="worktree"{wt=$2}
+    $1=="branch" && $2=="refs/heads/main"{print wt}
+  ')"
+
+  if [[ -n "$main_wt" ]]; then
+    # main is checked out somewhere (maybe $repo itself) → do an in-place FF merge
+    if git -C "$main_wt" merge --ff-only origin/main; then
+      echo "  main fast-forwarded in worktree: $main_wt"
+    else
+      echo "  main already up-to-date (or cannot fast-forward)."
+    fi
+  else
+    # main is not checked out in any worktree → safe to update the ref without switching branches
+    if git -C "$repo" show-ref --verify --quiet refs/heads/main; then
+      git -C "$repo" update-ref -m "ff main -> origin/main" \
+        refs/heads/main refs/remotes/origin/main \
+        && echo "  main advanced to origin/main (ref updated)."
+    else
+      # create the branch if it doesn't exist
+      git -C "$repo" branch main origin/main && echo "  main created from origin/main."
+    fi
+  fi
 }
+
 
 configpull() {
   local repo=""
