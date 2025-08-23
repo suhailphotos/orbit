@@ -17,3 +17,16 @@ orbit_load_dotenv() {
     export "$k"="$v"
   done <"$file"
 }
+
+# Deduplicate PATH once per shell. Keeps first occurrence of each existing dir.
+dedupe_path() {
+  emulate -L zsh
+  setopt extended_glob
+  local -A seen
+  local out=()
+  local IFS=:
+  for dir in $PATH; do
+    [[ -n $dir && -d $dir && -z ${seen[$dir]} ]] && { out+="$dir"; seen[$dir]=1; }
+  done
+  PATH="${(j/:/)out}"
+}

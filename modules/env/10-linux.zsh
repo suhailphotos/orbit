@@ -10,4 +10,7 @@ if [[ -o interactive ]]; then
   fi
 fi
 
-# Nothing else here; prompt/eza/etc are handled by other modules.
+# Optional Linuxbrew init if present
+if command -v brew >/dev/null 2>&1 && [[ -z ${HOMEBREW_PREFIX-} ]]; then
+  eval "$(brew shellenv)"
+fi
