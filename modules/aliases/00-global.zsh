@@ -1,5 +1,6 @@
 alias orbit='cd $DROPBOX/matrix/orbit'
 alias helix='cd $DROPBOX/matrix/helix'
+alias lilac='cd $DROPBOX/matrix/lilac'
 alias packages='cd $DROPBOX/matrix/packages'
 alias lg='lazygit'
 alias gs='git status'
