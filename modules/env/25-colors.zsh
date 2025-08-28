@@ -67,6 +67,18 @@ elif command -v batcat >/dev/null 2>&1; then
   alias cat='batcat --paging=never --style=plain'
 fi
 
+# If Debian/Ubuntu provides only batcat, give yourself a 'bat' alias too.
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
+  alias bat='batcat'
+fi
+
+# Optional: pretty man pages via bat, only if available.
+if command -v bat >/dev/null 2>&1; then
+  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+elif command -v batcat >/dev/null 2>&1; then
+  export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
+fi
+
 # grep colors (prefer Homebrew GNU on macOS if present)
 if command -v ggrep >/dev/null 2>&1; then
   alias grep='ggrep --color=auto'
