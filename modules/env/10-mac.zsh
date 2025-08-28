@@ -15,7 +15,14 @@ export PYENV_ROOT="$HOME/.pyenv"
 [[ -d "$PYENV_ROOT/bin" ]] && orbit_prepend_path "$PYENV_ROOT/bin"
 command -v pyenv >/dev/null && eval "$(pyenv init -)"
 # poetry usually via pipx (already added ~/.local/bin globally)
-#
+
+# TERM safety (same pattern as linux)
+if [[ -o interactive ]]; then
+  if ! infocmp "$TERM" >/dev/null 2>&1; then
+    export TERM=xterm-256color
+  fi
+fi
+
 
 # --- Neovim light/dark hint for remote hosts (mac client only) ---
 # You can force with:  NVIM_BG_FORCE=light|dark
