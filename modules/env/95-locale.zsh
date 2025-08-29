@@ -6,19 +6,31 @@
 
 if [[ -o interactive ]]; then
   local desired=""
-  if [[ ${LC_CTYPE-} == *UTF-8* ]]; then
+
+  # Prefer whatever UTF-8 you already have.
+  if [[ ${LC_CTYPE-} == *[Uu][Tt][Ff]-8* ]]; then
     desired="$LC_CTYPE"
-  elif [[ ${LANG-} == *UTF-8* ]]; then
+  elif [[ ${LANG-} == *[Uu][Tt][Ff]-8* ]]; then
     desired="$LANG"
   else
-    desired="C.UTF-8"
+    # Safe default on modern Ubuntu/Debian (glibc provides C.UTF-8)
+    desired="${ORBIT_DEFAULT_LOCALE:-C.UTF-8}"
   fi
 
-  # Sync both; don’t touch LC_ALL.
+  # Apply without fighting user overrides
   [[ ${LC_CTYPE-} == "$desired" ]] || export LC_CTYPE="$desired"
-  # If LANG is empty or non-UTF-8, align it too.
-  if [[ ${LANG-} != *UTF-8* || ${LANG-} != "$desired" ]]; then
+  if [[ -z ${LANG-} || ${LANG-} != "$desired" ]]; then
     export LANG="$desired"
   fi
-  unset desired
+
+  # Optional ultra-rare fallback:
+  # If this host doesn't have C.UTF-8, try en_US.UTF-8 once.
+  # Runs only when neither LANG/LC_CTYPE were UTF-8.
+  # if [[ $desired == C.UTF-8 ]] && ! locale -a 2>/dev/null | grep -qi '^c\.utf-8$'; then
+  #   if locale -a 2>/dev/null | grep -qi '^en_US\.utf-8$'; then
+  #     export LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8
+  #   fi
+  # fi
 fi
+
+
