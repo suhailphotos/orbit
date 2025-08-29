@@ -10,4 +10,9 @@ _starship_tmux_seg() {
     unset STARSHIP_TMUX_SEG               # hide when not in tmux
   fi
 }
-precmd_functions+=(_starship_tmux_seg)
+
+# modules/functions/tmux.zsh
+typeset -ag precmd_functions
+if (( ${precmd_functions[(Ie)_starship_tmux_seg]} == 0 )); then
+  precmd_functions+=(_starship_tmux_seg)
+fi
