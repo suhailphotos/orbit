@@ -1,18 +1,17 @@
 # modules/functions/tmux.zsh
 _starship_tmux_seg() {
-  if [[ -n "$TMUX" ]]; then
-    if [[ "$PWD" == "$HOME" ]]; then
-      export STARSHIP_TMUX_SEG='󱗾'       # at home: no surrounding spaces
+  # choose glyph (allow ASCII fallback if needed)
+  local sym=''
+  [[ ${ORBIT_PROMPT_ASCII:-0} -eq 1 ]] && sym='x'
+
+  if [[ -n $TMUX ]]; then
+    if [[ $PWD == $HOME ]]; then
+      export STARSHIP_TMUX_SEG="${sym}"       # no extra spaces at home
     else
-      export STARSHIP_TMUX_SEG=' 󱗾 '     # not home: space-prefixed & suffixed
+      export STARSHIP_TMUX_SEG=" ${sym} "     # pad on both sides elsewhere
     fi
   else
-    unset STARSHIP_TMUX_SEG               # hide when not in tmux
+    unset STARSHIP_TMUX_SEG
   fi
 }
-
-# modules/functions/tmux.zsh
-typeset -ag precmd_functions
-if (( ${precmd_functions[(Ie)_starship_tmux_seg]} == 0 )); then
-  precmd_functions+=(_starship_tmux_seg)
-fi
+precmd_functions+=(_starship_tmux_seg)
