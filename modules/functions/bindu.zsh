@@ -17,19 +17,32 @@ _bindu_is_repo() {
 
 # background fetch, at most every BINDU_FETCH_INTERVAL seconds
 _bindu_autofetch_maybe() {
+  emulate -L zsh            # reset to sane, localized defaults
+  setopt localoptions       # keep option changes local to this func
+
   [[ -o interactive ]] || return
   _bindu_is_repo || { unset STARSHIP_BINDU_AHEAD STARSHIP_BINDU_BEHIND STARSHIP_BINDU_DIVERGED; return; }
 
+  # epoch seconds without forking if possible
   local now last=0
-  now="$(printf %(%s)T -1)"      # zsh builtin (no external date)
+  if (( ${+EPOCHSECONDS} )); then
+    now=$EPOCHSECONDS
+  else
+    zmodload -F zsh/datetime 2>/dev/null || true
+    if (( ${+EPOCHSECONDS} )); then
+      now=$EPOCHSECONDS
+    else
+      now="$(printf "%(%s)T" -1)"   # portable fallback, correctly quoted
+    fi
+  fi
+
   [[ -f "$BINDU_STAMP" ]] && read -r last < "$BINDU_STAMP" || true
   (( now - last < BINDU_FETCH_INTERVAL )) && return
 
   (
-    # never touch the TTY; fail silently; record errors to log
     git -C "$BINDU_DIR" fetch --tags --quiet "$BINDU_REMOTE" >/dev/null 2>>"$BINDU_LOG" || true
     printf '%s\n' "$now" >| "$BINDU_STAMP" || true
-  ) &!   # background, disowned
+  ) &!
 }
 
 # compute relation to upstream and set one of three Starship env vars
