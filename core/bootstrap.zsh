@@ -8,6 +8,7 @@ typeset -U path
 path=(/opt/homebrew/bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $path)
 
 _ORBIT_DIR=${0:A:h:h}    # path to repo root
+export ORBIT_HOME="$_ORBIT_DIR"
 source "$_ORBIT_DIR/core/detect_platform.zsh"
 source "$_ORBIT_DIR/core/path_helpers.zsh"
 source "$_ORBIT_DIR/core/detect_apps.zsh"

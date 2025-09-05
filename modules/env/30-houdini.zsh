@@ -11,6 +11,7 @@ if [[ -z $_ver ]]; then
   _ver="$_latest"
 fi
 
-if [[ -n $_ver && -z "$HOUDINI_USER_PREF_DIR" ]]; then
-  export HOUDINI_USER_PREF_DIR="$HOME/Library/Preferences/houdini/${_ver%.*}"
+# Expose a helper var I can use elsewhere.
+if [[ -n $_ver ]]; then
+  export ORBIT_HOUDINI_PREF_DEFAULT="$HOME/Library/Preferences/houdini/${_ver%.*}"
 fi
