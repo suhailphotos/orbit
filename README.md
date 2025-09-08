@@ -41,10 +41,10 @@ secrets/      # .env and optional 1Password token (ignored by git)
 
 | Command | Description |
 |---|---|
-| `pkg <name|path> [--hou [VER|latest]] [--cd-only]` | Jump to a package and activate its Poetry env. If `--hou` is set (or the package is in `$HOU_PACKAGES`), first point Poetry at the SideFX Python for the selected Houdini version. |
-| `mkpkg <name|path> [--hou [VER]] [--alias NAME]` | Create a per-session helper function that wraps `pkg`. Great for quick shortcuts. |
+| `pkg <name\|path> [--hou [VER\|latest]] [--cd-only]` | Jump to a package and activate its Poetry env. If `--hou` is set (or the package is in `$HOU_PACKAGES`), first point Poetry at the SideFX Python for the selected Houdini version. |
+| `mkpkg <name\|path> [--hou [VER]] [--alias NAME]` | Create a per-session helper function that wraps `pkg`. Great for quick shortcuts. |
 | `hou <subcommand>` | SideFX/Houdini helper: version selection, Poetry interpreter wiring, user prefs, smoke‐testing `import hou`, package shim JSON, etc. See [docs/Houdini.md](docs/Houdini.md). |
-| `nukeUtils [-e|launch]` | Nuke env helper (mac by default). |
+| `nukeUtils [-e\|launch]` | Nuke env helper (mac by default). |
 | `bindu_autosync_on/off/status` | Low‑overhead autosync for `~/.config` if that dir is a git repo. |
 | `push_terminfo user@host [TERM]` | Copy this terminal’s terminfo to a remote host. |
 | `terminfo_ok user@host [TERM]` | Check if a remote host knows this TERM. |
