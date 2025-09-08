@@ -30,33 +30,29 @@ _hou_toml_get() {
   sed -nE "0,/^\[tool\.poetry\]/ s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*\"([^\"]+)\".*/\1/p" "$file" | head -n1
 }
 
-# List installed Houdini versions (sorted new→old), return as lines like 21.0.440
+# List installed Houdini versions (sorted new→old), return lines like 21.0.440
 _hou_versions() {
   if [[ $ORBIT_PLATFORM == mac ]]; then
     ls -1d /Applications/Houdini/Houdini* 2>/dev/null \
       | sed 's|.*/Houdini||' \
-      | sort -Vr
+      | LC_ALL=C sort -t . -k1,1nr -k2,2nr -k3,3nr
   elif [[ $ORBIT_PLATFORM == linux ]]; then
-    # Prefer /opt/hfsX.Y.ZZZ (matches detect_apps)
     ls -1d /opt/hfs* 2>/dev/null \
       | sed 's|.*/hfs||' \
-      | sort -Vr
+      | LC_ALL=C sort -t . -k1,1nr -k2,2nr -k3,3nr
   fi
 }
 
 # Pick a version: explicit arg or "latest installed" fallback
 _hou_pick_version() {
   local want="$1"
-  if [[ -n "$want" ]]; then
-    echo "$want"
-    return 0
+  if [[ -n "$want" && "$want" != "latest" ]]; then
+    echo "$want"; return 0
   fi
-  # fallback to detected version from detect_apps first
+  # prefer detect_apps if available
   if [[ -n "${ORBIT_HOUDINI_VERSION:-}" ]]; then
-    echo "$ORBIT_HOUDINI_VERSION"
-    return 0
+    echo "$ORBIT_HOUDINI_VERSION"; return 0
   fi
-  # otherwise scan filesystem
   _hou_versions | head -n1
 }
 
@@ -73,20 +69,17 @@ _hou_paths() {
   if [[ $ORBIT_PLATFORM == mac ]]; then
     local root="/Applications/Houdini/Houdini${ver}"
     RES="$root/Frameworks/Houdini.framework/Versions/Current/Resources"
-    # SideFX bundled Python (stable path)
     PYBIN="$root/Frameworks/Houdini.framework/Versions/Current/Resources/Frameworks/Python.framework/Versions/Current/bin/python3"
     HFS="$root/Frameworks/Houdini.framework/Versions/Current"
     [[ -x "$PYBIN" && -d "$RES" ]] || return 1
   else
-    # Linux: standard install layout
     HFS="/opt/hfs${ver}"
     [[ -d "$HFS" ]] || return 1
-    # pick matching python in $HFS/bin (try common versions)
     for py in "$HFS/bin/python3.11" "$HFS/bin/python3.10" "$HFS/bin/python3"; do
       [[ -x "$py" ]] && PYBIN="$py" && break
     done
     [[ -n "$PYBIN" ]] || return 1
-    RES="$HFS"  # houdini_setup is at $HFS/houdini_setup
+    RES="$HFS"
   fi
 
   print -r -- "VER=$ver"
@@ -117,16 +110,11 @@ _hou_poetry_env_path() {
 _hou_site_packages() {
   local venv="$1"
   [[ -x "$venv/bin/python" ]] || return 1
-  "$venv/bin/python" - "$@" <<'PY'
-import site, sys, sysconfig
-# prefer purelib (site-packages) from sysconfig
+  "$venv/bin/python" - <<'PY'
+import site, sysconfig
 paths = sysconfig.get_paths()
 pure = paths.get("purelib")
-if pure:
-    print(pure)
-else:
-    s = site.getsitepackages()
-    print(s[0] if s else site.getusersitepackages())
+print(pure or site.getusersitepackages())
 PY
 }
 
@@ -134,25 +122,22 @@ PY
 _hou_source_setup() {
   local RES="$1" HFS="$2"
   if [[ $ORBIT_PLATFORM == mac ]]; then
-    # mac: houdini_setup lives under Resources
     [[ -r "$RES/houdini_setup" ]] || { echo "Missing $RES/houdini_setup"; return 1; }
-    # shellcheck disable=SC1090
     source "$RES/houdini_setup"
   else
     [[ -r "$HFS/houdini_setup" ]] || { echo "Missing $HFS/houdini_setup"; return 1; }
-    # shellcheck disable=SC1090
     source "$HFS/houdini_setup"
   fi
 }
 
-# Write/patch $HOUDINI_USER_PREF_DIR/houdini.env with a PYTHONPATH entry (idempotent).
+# Legacy (kept for backwards compat): append site-packages via houdini.env
 _hou_patch_houdini_env() {
   local prefdir="$1" site="$2"
   mkdir -p "$prefdir"
   local envfile="$prefdir/houdini.env"
   touch "$envfile"
   if ! grep -qF "$site" "$envfile"; then
-    printf 'PYTHONPATH="$PYTHONPATH:%s"\n' "$site" >>"$envfile"
+    printf 'PYTHONPATH="$PYTHONPATH:%s"\n' "$site" >> "$envfile"
     echo "→ Added site-packages to $envfile"
   else
     echo "→ Site-packages already present in $envfile"
@@ -172,40 +157,58 @@ ${release:+hou.releaseLicense()}
 PY
 }
 
+# Dev shim package JSON: point PYTHONPATH to the project venv
+_hou_write_pkg_json() {
+  local prefdir="$1" site="$2"
+  local pkgdir="$prefdir/packages"
+  mkdir -p "$pkgdir"
+  local f="$pkgdir/98_poetry_site.json"
+  cat >| "$f" <<JSON
+{
+  "enable": true,
+  "load_package_once": true,
+  "env": [
+    { "PYTHONPATH": "\${PYTHONPATH}:${site}" }
+  ]
+}
+JSON
+  echo "→ Wrote dev shim: $f"
+}
+
 # ---------------------------
 # Public command: hou
 # ---------------------------
 # Subcommands:
-#   hou versions                    # list installed versions (new→old)
-#   hou python  [VER|latest]        # print SideFX python path for version
-#   hou prefs   [VER|latest]        # export HOUDINI_USER_PREF_DIR for version (in-shell)
-#   hou use     [VER|latest]        # from a Poetry project dir: set interpreter to SideFX python
-#   hou patch   [VER|latest]        # add project’s site-packages to houdini.env
-#   hou import  [VER|latest] [--license hescape|batch] [--release]  # smoke-test import hou
-#   hou env     [VER|latest]        # source houdini_setup into this shell (no python run)
-#   hou doctor  [VER|latest]        # show resolved paths & quick checks
-#
-# Notes:
-# - Run "hou use" *inside* your package folder (auto-detects pyproject name).
-# - If you prefer specifying the package root, set HOU_PROJECT_ROOT before calling.
-# - "latest" is the default when no version is given.
+#   hou versions
+#   hou python  [VER|latest]
+#   hou prefs   [VER|latest]
+#   hou use     [VER|latest]        # set Poetry interpreter to SideFX python
+#   hou pkgshim [VER|latest]        # write user package JSON for current Poetry venv
+#   hou patch   [VER|latest]        # (legacy) add site-packages to houdini.env
+#   hou import  [VER|latest] [--license hescape|batch] [--release]
+#   hou env     [VER|latest]
+#   hou doctor  [VER|latest]
 hou() {
   emulate -L zsh
-  setopt pipefail no_unset
+  setopt pipefail
 
   local cmd="${1:-help}"; shift || true
-  local req_ver="${1:-}"; [[ -n "$req_ver" && "$cmd" != "python" && "$cmd" != "prefs" && "$cmd" != "use" && "$cmd" != "patch" && "$cmd" != "import" && "$cmd" != "env" && "$cmd" != "doctor" ]] && req_ver=""
-  [[ -n "$req_ver" && "$req_ver" != "latest" ]] && shift || true
+
+  # Optional version argument for commands that accept it
+  local req_ver=""
+  case "${1-}" in
+    latest|[0-9]*.[0-9]*.[0-9]*) req_ver="$1"; shift ;;
+  esac
 
   case "$cmd" in
     versions)
       _hou_versions || { echo "No Houdini versions found." >&2; return 1; }
-      return 0
       ;;
+
     python|prefs|use|patch|import|env|doctor)
       local ver; ver="$(_hou_pick_version "${req_ver:-}")" || { echo "Couldn’t resolve Houdini version."; return 1; }
       local kv; kv="$(_hou_paths "$ver")" || { echo "Couldn’t resolve paths for $ver"; return 1; }
-      local RES HFS PYBIN; eval "$kv"    # set RES/HFS/PYBIN
+      local RES HFS PYBIN; eval "$kv"
 
       case "$cmd" in
         python)
@@ -230,33 +233,27 @@ hou() {
           local proj_root="${HOU_PROJECT_ROOT:-$(_hou_project_root)}"
           [[ -n "$proj_root" ]] || { echo "Not inside a Poetry project (pyproject.toml not found)."; return 1; }
           local pref; pref="$(_hou_pref_dir_for_version "$ver")"
-          export HOUDINI_USER_PREF_DIR="$pref"
-          mkdir -p "$pref"
-
+          export HOUDINI_USER_PREF_DIR="$pref"; mkdir -p "$pref"
           local venv; venv="$(_hou_poetry_env_path "$proj_root")" || { echo "Poetry env not found."; return 1; }
           local site; site="$(_hou_site_packages "$venv")"       || { echo "Couldn’t locate site-packages."; return 1; }
-
           _hou_patch_houdini_env "$pref" "$site"
           ;;
 
         import)
-          # flags: --license hescape|batch, --release
           local license="" release=0 arg
           for arg in "$@"; do
             case "$arg" in
-              --license) shift; license="$1"; shift || true ;;
-              --license=*) license="${arg#--license=}" ;;
-              --release) release=1 ;;
+              --license) shift; license="${1:-}";;
+              --license=*) license="${arg#--license=}";;
+              --release) release=1;;
             esac
           done
-
           _hou_source_setup "$RES" "$HFS" || return 1
-          # lightweight: only set prefs if user asked earlier; otherwise skip
           _hou_smoke_import "$PYBIN" "$license" "$release"
           ;;
 
         env)
-          _hou_source_setup "$RES" "$HFS"
+          _hou_source_setup "$RES" "$HFS" || return 1
           echo "houdini_setup sourced for $ver (HFS=$HFS)"
           ;;
 
@@ -272,8 +269,25 @@ hou() {
             echo "  setup   : FAILED"
           fi
           ;;
-
       esac
+      ;;
+
+    pkgshim)
+      local ver; ver="$(_hou_pick_version "${req_ver:-}")" || { echo "Couldn’t resolve Houdini version."; return 1; }
+      local kv; kv="$(_hou_paths "$ver")" || { echo "Couldn’t resolve paths for $ver"; return 1; }
+      local RES HFS PYBIN; eval "$kv"
+
+      local proj_root="${HOU_PROJECT_ROOT:-$(_hou_project_root)}"
+      [[ -n "$proj_root" ]] || { echo "Not inside a Poetry project (pyproject.toml not found)."; return 1; }
+
+      local pref; pref="$(_hou_pref_dir_for_version "$ver")"
+      export HOUDINI_USER_PREF_DIR="$pref"; mkdir -p "$pref"
+
+      local venv; venv="$(_hou_poetry_env_path "$proj_root")" || { echo "Poetry env not found."; return 1; }
+      local site; site="$(_hou_site_packages "$venv")"       || { echo "Couldn’t locate site-packages."; return 1; }
+
+      _hou_write_pkg_json "$pref" "$site"
+      echo "Dev package shim ready (Houdini will pick it up next launch)."
       ;;
 
     help|*)
@@ -285,7 +299,8 @@ Usage:
   hou python  [VER|latest]
   hou prefs   [VER|latest]
   hou use     [VER|latest]                # run inside a Poetry project dir
-  hou patch   [VER|latest]                # add project site-packages to houdini.env
+  hou pkgshim [VER|latest]                # write user package JSON for current Poetry venv
+  hou patch   [VER|latest]                # (legacy) write houdini.env with site-packages
   hou import  [VER|latest] [--license hescape|batch] [--release]
   hou env     [VER|latest]
   hou doctor  [VER|latest]
@@ -293,7 +308,7 @@ Usage:
 Tips:
 - Run "hou use" inside your package folder (auto-detects pyproject).
 - Omit VER to use the newest installed Houdini.
-- "hou import" is heavy (initializes Houdini & checks out a license); it's optional.
+- "hou import" initializes Houdini & checks out a license; it's optional.
 - To target a specific project outside CWD: HOU_PROJECT_ROOT=/path/to/pkg hou use
 EOF
       ;;
