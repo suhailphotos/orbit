@@ -31,7 +31,12 @@ _pkg_poetry_activate() {
   local root="$1"
   local venv
   venv="$(cd "$root" && poetry env info --path 2>/dev/null)" || return 1
-  [[ -n "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:A}" == "${venv:A}" ]] || source "$venv/bin/activate"
+
+  # only switch if different
+  if [[ "${VIRTUAL_ENV:-}" != "$venv" ]]; then
+    _orbit_py_deactivate
+    source "$venv/bin/activate"
+  fi
 }
 
 # does this package want Houdini by default?
@@ -67,12 +72,12 @@ pkg() {
   root="$(_pkg_resolve_root "$target")" || { echo "pkg: not found → $target"; return 1; }
   local name="${root:t}"
 
-  # Houdini pre-step if requested or if pkg is known Houdini pkg
+  # Ensure Poetry uses SideFX Python for *this* project if requested or defaulted
   if (( want_hou )) || _pkg_is_houdini_pkg "$name"; then
     if (( want_hou )); then
-      hou use "${ver:-latest}" || return 1
+      HOU_PROJECT_ROOT="$root" hou use "${ver:-latest}" || return 1
     else
-      hou use latest || return 1
+      HOU_PROJECT_ROOT="$root" hou use latest || return 1
     fi
   fi
 
@@ -80,7 +85,7 @@ pkg() {
   (( cd_only )) && { pwd; return 0; }
 
   if ! _pkg_poetry_activate "$root"; then
-    echo "pkg: no Poetry venv yet → running 'poetry install'..."
+    echo "pkg: no Poetry env yet → running 'poetry install'..."
     poetry install || return 1
     _pkg_poetry_activate "$root" || return 1
   fi
