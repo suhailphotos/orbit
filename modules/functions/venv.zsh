@@ -3,6 +3,11 @@
 # Orbit: Environment activation & publish helpers
 # ------------------------------------------------------------------
 
+# --- guard: nuke any alias named `deactivate` (zsh would choke on it) -----
+if alias deactivate >/dev/null 2>&1; then
+  unalias deactivate 2>/dev/null
+fi
+
 # --- Safe deactivation of whatever is active ----------------------
 _orbit_py_deactivate() {
   # Conda first (can be nested)
@@ -20,11 +25,7 @@ _orbit_py_deactivate() {
 # User-facing helper to turn off any active Python env
 env_off() { _orbit_py_deactivate; }
 
-# --- Fallback `deactivate` that never errors when no env is active --
-# We (re)install this only when there is no venv/conda active and no
-# other `deactivate` function is defined. A venv will override it
-# while active; after deactivation (which usually unsets itself),
-# our precmd hook below restores this fallback.
+# --- Fallback `deactivate` that never errors when no env is active -------
 _deactivate_fallback() {
   # If a Conda env is active (but venv isn't), step down one level.
   if command -v conda >/dev/null 2>&1 && [[ -n ${CONDA_SHLVL:-} && ${CONDA_SHLVL} -gt 0 ]]; then
@@ -36,8 +37,11 @@ _deactivate_fallback() {
 }
 
 _orbit_install_deactivate_fallback() {
-  # Only when *no* venv/conda is active and no other `deactivate` exists
+  # Don’t interfere if an env is active or a real function already exists.
   if [[ -z ${VIRTUAL_ENV:-} && ${CONDA_SHLVL:-0} -eq 0 ]]; then
+    # Remove any alias that might have been (re)introduced
+    alias deactivate >/dev/null 2>&1 && unalias deactivate 2>/dev/null
+    # Only define if no function named deactivate exists
     if ! typeset -f deactivate >/dev/null 2>&1; then
       deactivate() { _deactivate_fallback "$@"; }
     fi
@@ -49,7 +53,7 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd _orbit_install_deactivate_fallback
 _orbit_install_deactivate_fallback
 
-# Convenience: `da` → `deactivate`
+# Convenience: `da` → `deactivate` (this is safe; it expands to the function in effect)
 alias da='deactivate'
 
 # --- Project helpers ---------------------------------------------------------
