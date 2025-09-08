@@ -1,17 +1,17 @@
-# Only run if Houdini is installed
+# modules/env/30-houdini.zsh
 [[ "${ORBIT_HAS_HOUDINI:-0}" == 1 ]] || return
+[[ $ORBIT_PLATFORM == mac || $ORBIT_PLATFORM == linux ]] || return
 
-# mac-only prefs default
-[[ $ORBIT_PLATFORM == mac ]] || return
+# Prefer detect_apps result; else probe
+_ver="${ORBIT_HOUDINI_VERSION:-$(_latest="$(ls -1d /Applications/Houdini/Houdini* 2>/dev/null | sed 's|.*/Houdini||' | sort -r | head -n1)"; print -r -- "$_latest")}"
 
-# Use detected version if we have it; otherwise probe (quietly)
-_ver="$ORBIT_HOUDINI_VERSION"
-if [[ -z $_ver ]]; then
-  _latest="$(ls -1d /Applications/Houdini/Houdini* 2>/dev/null | sed 's|.*/Houdini||' | sort -r | head -n1)"
-  _ver="$_latest"
-fi
-
-# Expose a helper var I can use elsewhere.
 if [[ -n $_ver ]]; then
-  export ORBIT_HOUDINI_PREF_DEFAULT="$HOME/Library/Preferences/houdini/${_ver%.*}"
+  # X.Y from X.Y.Z
+  _mm="${_ver%.*}"
+  if [[ $ORBIT_PLATFORM == mac ]]; then
+    export ORBIT_HOUDINI_PREF_DEFAULT="$HOME/Library/Preferences/houdini/$_mm"
+  else
+    export ORBIT_HOUDINI_PREF_DEFAULT="$HOME/houdini$_mm"
+  fi
 fi
+unset _ver _mm _latest
