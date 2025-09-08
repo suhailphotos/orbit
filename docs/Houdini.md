@@ -30,14 +30,14 @@ hou import 21.0.440 --release       # release the license after the test
 | Command | What it does |
 |---|---|
 | `hou versions` | List installed versions (new → old). |
-| `hou python  [VER|latest]` | Print the absolute path to the SideFX Python for that version. |
-| `hou prefs   [VER|latest]` | Export `HOUDINI_USER_PREF_DIR` to the versioned user prefs (`~/Library/Preferences/houdini/21.0` on mac; `~/houdini21.0` on Linux). |
-| `hou use     [VER|latest]` | Inside a Poetry project, run `poetry env use <SideFX-python>`. |
-| `hou pkgshim [VER|latest]` | Write a dev JSON package at `$HOUDINI_USER_PREF_DIR/packages/98_poetry_site.json` that appends your venv’s `site-packages` to `PYTHONPATH`. |
-| `hou patch   [VER|latest]` | (Legacy) Append `PYTHONPATH` to `houdini.env` instead of using packages JSON. |
-| `hou import  [VER|latest] [--license hescape|batch] [--release]` | Source `houdini_setup` and run a quick `import hou` using SideFX Python. |
-| `hou env     [VER|latest]` | Source `houdini_setup` into this shell (sets `HFS`, `HHP`, etc.). |
-| `hou doctor  [VER|latest]` | Print resolved paths and whether `houdini_setup` sources cleanly. |
+| `hou python  [VER\|latest]` | Print the absolute path to the SideFX Python for that version. |
+| `hou prefs   [VER\|latest]` | Export `HOUDINI_USER_PREF_DIR` to the versioned user prefs (`~/Library/Preferences/houdini/21.0` on mac; `~/houdini21.0` on Linux). |
+| `hou use     [VER\|latest]` | Inside a Poetry project, run `poetry env use <SideFX-python>`. |
+| `hou pkgshim [VER\|latest]` | Write a dev JSON package at `$HOUDINI_USER_PREF_DIR/packages/98_poetry_site.json` that appends your venv’s `site-packages` to `PYTHONPATH`. |
+| `hou patch   [VER\|latest]` | (Legacy) Append `PYTHONPATH` to `houdini.env` instead of using packages JSON. |
+| `hou import  [VER\|latest] [--license hescape\|batch] [--release]` | Source `houdini_setup` and run a quick `import hou` using SideFX Python. |
+| `hou env     [VER\|latest]` | Source `houdini_setup` into this shell (sets `HFS`, `HHP`, etc.). |
+| `hou doctor  [VER\|latest]` | Print resolved paths and whether `houdini_setup` sources cleanly. |
 
 ### Notes
 
@@ -55,8 +55,8 @@ HOU_PACKAGES=(houdiniLab houdiniUtils)
 
 Then a simple `pkg houdiniLab` will:
 
-1) run `hou use latest` (or `--hou <VER>` if you pass it),  
-2) `cd` into the package, and  
+1) run `hou use latest` (or `--hou <VER>` if you pass it),
+2) `cd` into the package, and
 3) activate the Poetry venv (installing if missing).
 
 ```sh
