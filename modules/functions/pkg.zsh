@@ -90,7 +90,7 @@ pkg() {
     _pkg_poetry_activate "$root" || return 1
   fi
 
-  echo "→ $(print -P %F{cyan})${name}$(print -P %f) active $(print -P %F{8})[$PWD]%f"
+  echo "→ $(print -P "%F{cyan}${name}%f") active $(print -P "%F{8}[${PWD}]%f")"
 }
 
 # mkpkg: make a quick wrapper function (persist by adding the line to orbit later)
