@@ -6,7 +6,7 @@ This is the human‑sized index. See the linked pages for deep dives.
 
 | Command | What it does |
 |---|---|
-| `pkg <name\|path> [--hou [VER\|latest]] [--cd-only]` | Jump to a package under `$MATRIX/packages`, optionally ensure Poetry uses SideFX Python first, then activate the Poetry venv. Creates it with `poetry install` if missing. |
+| `pkg <name\|path> [--hou [VER\|latest]] [--cd-only]` | Jump to a package under `$MATRIX/packages`, optionally ensure Poetry uses SideFX Python first, then then activate the uv venv (stored at ~/.venv/<repo>). |
 | `mkpkg <name\|path> [--hou [VER]] [--alias NAME]` | Define a quick per‑session function that wraps `pkg`. Example: `mkpkg houdiniLab --hou` then just run `houdiniLab`. |
 | `usdUtils`, `oauthManager`, `pythonKitchen`, … | Pre‑baked helpers from `modules/functions/venv.zsh`. They `cd` into the project and activate Poetry on macOS, or Conda on Linux if `ORBIT_USE_CONDA=1`. |
 

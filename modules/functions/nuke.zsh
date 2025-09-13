@@ -21,9 +21,7 @@ nukeUtils() {
   _nuke_activate() {
     [[ -d "$root" ]] || { echo "Project not found: $root" >&2; return 1; }
     [[ "$PWD" == "$root" ]] || cd "$root" || return 1
-    if command -v poetry >/dev/null 2>&1; then
-      [[ -n $VIRTUAL_ENV ]] || source "$(poetry env info --path)/bin/activate"
-    fi
+    _uv_activate_in_project "$root" || return 1
   }
 
   _nuke_prefs_and_paths() {

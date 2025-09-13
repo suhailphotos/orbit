@@ -1,110 +1,75 @@
-# modules/functions/pkg.zsh
-# Jump to a package and activate its env. Optional: ensure SideFX Python first.
-
+# modules/functions/pkg.zsh  (UV version)
 : ${PACKAGES_ROOT:="${MATRIX:-$DROPBOX/matrix}/packages"}
 typeset -a HOU_PACKAGES
-HOU_PACKAGES=(${HOU_PACKAGES:-houdiniLab houdiniUtils})  # override in secrets/.env if you like
+HOU_PACKAGES=(${HOU_PACKAGES:-houdiniLab houdiniUtils})
 
-# case-insensitive match helper
 _pkg_ci() {
   local needle="$1"
   for d in "$PACKAGES_ROOT"/*; do
     [[ -d $d ]] || continue
     [[ "${d:t:l}" == "${needle:l}" ]] && { echo "$d"; return 0; }
-  done
-  return 1
+  done; return 1
 }
-
-# find a poetry project root from name or absolute path
 _pkg_resolve_root() {
   local arg="$1"
-  if [[ -d "$arg" ]]; then
-    echo "${arg:A}"; return 0
-  fi
+  if [[ -d "$arg" ]]; then echo "${arg:A}"; return 0; fi
   [[ -d "$PACKAGES_ROOT/$arg" ]] && { echo "$PACKAGES_ROOT/$arg"; return 0; }
-  _pkg_ci "$arg" && return 0
-  return 1
+  _pkg_ci "$arg" && return 0; return 1
 }
-
-# poetry venv activator (deactivate anything first)
-_pkg_poetry_activate() {
-  local root="$1"
-  local venv
-  venv="$(cd "$root" && poetry env info --path 2>/dev/null)" || return 1
-
-  # If it's already the right venv, do nothing
-  if [[ -n "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:A}" == "${venv:A}" ]]; then
-    return 0
-  fi
-
-  # Otherwise ensure a clean slate, then activate
-  _orbit_deactivate_any
-  source "$venv/bin/activate"
-}
-
-# does this package want Houdini by default?
 _pkg_is_houdini_pkg() {
-  local name="$1"
-  for p in "${HOU_PACKAGES[@]}"; do
+  local name="$1"; for p in "${HOU_PACKAGES[@]}"; do
     [[ "${p:l}" == "${name:l}" ]] && return 0
-  done
-  return 1
+  done; return 1
+}
+# Use the shared activator that works in the **current** shell
+_pkg_uv_activate() {
+  _uv_activate_in_project "$1"
 }
 
-# main: pkg
 pkg() {
-  emulate -L zsh
-  setopt pipefail
-  if [[ -z "$1" ]]; then
-    echo "Usage: pkg <name|path> [--hou [VER|latest]] [--cd-only]"; return 1
-  fi
-
+  emulate -L zsh; setopt pipefail
+  [[ -z "$1" ]] && { echo "Usage: pkg <name|path> [--hou [VER|latest]] [--cd-only]"; return 1; }
   local target="$1"; shift
-  local want_hou=0 ver="" cd_only=0
+  local want_hou=0 ver="" cd_only=0 force_sync=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --hou) want_hou=1; [[ -n "${2-}" && "${2:0:2}" != "--" ]] && { ver="$2"; shift; } ;;
       --hou=*) want_hou=1; ver="${1#--hou=}";;
       --cd-only) cd_only=1;;
       *) echo "pkg: unknown flag '$1'"; return 1;;
-    esac
-    shift
+    esac; shift
   done
 
-  local root
-  root="$(_pkg_resolve_root "$target")" || { echo "pkg: not found → $target"; return 1; }
+  local root; root="$(_pkg_resolve_root "$target")" || { echo "pkg: not found → $target"; return 1; }
   local name="${root:t}"
-
-  # Houdini pre-step if requested or if pkg is known Houdini pkg
-  if (( want_hou )) || _pkg_is_houdini_pkg "$name"; then
-    if (( want_hou )); then
-      hou use "${ver:-latest}" || return 1
-    else
-      hou use latest || return 1
-    fi
-  fi
+  local envroot="${ORBIT_UV_VENV_ROOT:-$HOME/.venvs}/${name}"
 
   cd "$root" || return 1
+
+  # clean up any unrelated, previously-active env
+  if [[ -n ${VIRTUAL_ENV:-} && "${VIRTUAL_ENV:A}" != "${envroot:A}" ]]; then
+    if typeset -f deactivate >/dev/null 2>&1; then deactivate >/dev/null 2>&1 || true; fi
+    unset VIRTUAL_ENV
+    hash -r 2>/dev/null || true
+  fi
+
   (( cd_only )) && { pwd; return 0; }
 
-  if ! _pkg_poetry_activate "$root"; then
-    echo "pkg: no Poetry venv yet → running 'poetry install'..."
-    poetry install || return 1
-    _pkg_poetry_activate "$root" || return 1
+  if (( want_hou )) || _pkg_is_houdini_pkg "$name"; then
+    ORBIT_UV_FORCE_SYNC=$force_sync hou use "${ver:-latest}" || return 1
+  else
+    (( force_sync )) && export ORBIT_UV_FORCE_SYNC=1
+    _pkg_uv_activate "$root" || { echo "pkg: uv activation failed."; return 1; }
+    (( force_sync )) && unset ORBIT_UV_FORCE_SYNC
   fi
-
-  echo "→ ${name} active [$PWD]"
+  (( ORBIT_UV_QUIET )) || echo "→ ${name} active [$PWD]"
 }
 
-# mkpkg: make a quick wrapper function (persist by adding the line to orbit later)
 mkpkg() {
   emulate -L zsh
-  if [[ -z "$1" ]]; then
-    echo "Usage: mkpkg <name|path> [--hou [VER]] [--alias NAME]"; return 1
-  fi
+  [[ -n "$1" ]] || { echo "Usage: mkpkg <name|path> [--hou [VER]] [--alias NAME]"; return 1; }
   local target="$1"; shift
   local alias="" want_hou=0 ver=""
-
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --alias) alias="$2"; shift;;
@@ -114,13 +79,9 @@ mkpkg() {
       *) echo "mkpkg: unknown flag '$1'"; return 1;;
     esac; shift
   done
-
   local root; root="$(_pkg_resolve_root "$target")" || { echo "mkpkg: not found → $target"; return 1; }
   local name="${alias:-${root:t}}"
   local houflag=""; (( want_hou )) && houflag="--hou ${ver:+$ver}"
-
-  eval "
-${name}() { pkg ${(q)root} ${houflag}; }
-"
+  eval "${name}() { pkg ${(q)root} ${houflag}; }"
   echo "→ Defined function: ${name}  (calls: pkg ${(q)root} ${houflag})"
 }

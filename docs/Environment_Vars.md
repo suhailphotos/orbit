@@ -17,7 +17,8 @@ Orbit exports a small, predictable set of variables. Values are platform‑aware
 | `ORBIT_HAS_NUKE` | `0/1` | *(detected)* |
 | `ORBIT_NUKE_DEFAULT` | `Nuke15.0v4` | *(detected)* |
 | `ORBIT_NUKE_EDITIONS` | `Nuke NukeX NukeStudio` | Available editions. |
-
+| `ORBIT_UV_VENV_ROOT` | `~/.venvs` | Base dir for all per-project uv envs. |
+| `ORBIT_UV_DEFAULT_PY` | `auto-houdini / 3.12 / /usr/local/bin/python3.12` | Fallback interpreter when a project doesn’t specify one. auto-houdini derives MAJOR.MINOR from the installed Houdini Python.|
 ## Paths / Projects
 
 | Variable | macOS | Linux | Notes |
