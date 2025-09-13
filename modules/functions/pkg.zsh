@@ -21,12 +21,9 @@ _pkg_is_houdini_pkg() {
     [[ "${p:l}" == "${name:l}" ]] && return 0
   done; return 1
 }
+# Use the shared activator that works in the **current** shell
 _pkg_uv_activate() {
-  local root="$1"
-  ( cd "$root" \
-    && { [[ -d .venv ]] || uv venv --python "$(uv python find --project 2>/dev/null || echo 3.11)"; } \
-    && { [[ -f uv.lock ]] && uv sync --frozen || { uv lock && uv sync; }; } \
-    && source .venv/bin/activate )
+  _uv_activate_in_project "$1"
 }
 
 pkg() {
@@ -46,22 +43,22 @@ pkg() {
   local root; root="$(_pkg_resolve_root "$target")" || { echo "pkg: not found → $target"; return 1; }
   local name="${root:t}"
 
-  if (( want_hou )) || _pkg_is_houdini_pkg "$name"; then
-    hou use "${ver:-latest}" || return 1
-  fi
-
   cd "$root" || return 1
-  (( cd_only )) && { pwd; return 0; }
 
-  # prevent cross-project warnings; ensure clean slate
+  # clean up any unrelated, previously-active env
   if [[ -n ${VIRTUAL_ENV:-} && "${VIRTUAL_ENV:A}" != "${root:A}/.venv" ]]; then
     if typeset -f deactivate >/dev/null 2>&1; then deactivate >/dev/null 2>&1 || true; fi
     unset VIRTUAL_ENV
     hash -r 2>/dev/null || true
   fi
 
-  if ! _pkg_uv_activate "$root"; then
-    echo "pkg: uv activation failed."; return 1
+  (( cd_only )) && { pwd; return 0; }
+
+  if (( want_hou )) || _pkg_is_houdini_pkg "$name"; then
+    # Now that we're **in** the project, hou can resolve it correctly
+    hou use "${ver:-latest}" || return 1
+  else
+    _pkg_uv_activate "$root" || { echo "pkg: uv activation failed."; return 1; }
   fi
   echo "→ ${name} active [$PWD]"
 }
