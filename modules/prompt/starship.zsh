@@ -5,33 +5,37 @@
 # Config path
 export STARSHIP_CONFIG="${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/starship/starship.toml}"
 
-# Derive a clean poetry/venv name once per prompt (no external commands)
+# Derive a stable env name from VIRTUAL_ENV (never from $PWD)
 _prompt_set_py_name() {
   emulate -L zsh
   setopt extended_glob
   unset PROMPT_PY_ENV_NAME
 
-  if [[ -n ${VIRTUAL_ENV:-} ]]; then
-    local base="${VIRTUAL_ENV:t}"
+  [[ -n ${VIRTUAL_ENV:-} ]] || return
 
-    # In-project .venv -> use cwd basename
-    if [[ $base == ".venv" ]]; then
-      PROMPT_PY_ENV_NAME="${PWD:t}"
-    else
-      # Strip trailing "-pyX[.Y[.Z]]"
-      local clean="${base%-py[0-9.]##}"
-      # Strip trailing "-<hash>" (typical Poetry)
-      if [[ $clean == *-[A-Za-z0-9]## ]]; then
-        clean="${clean%-[A-Za-z0-9]##}"
-      fi
-      # If it still prefixes the cwd name, snap to cwd
-      [[ $clean == ${PWD:t}-* ]] && clean="${PWD:t}"
-      PROMPT_PY_ENV_NAME="$clean"
+  local envpath="${VIRTUAL_ENV:A}"
+  local base="${envpath:t}"
+  local name=""
+
+  if [[ $base == ".venv" ]]; then
+    # Show the project folder that owns .venv
+    name="${envpath:h:t}"
+  else
+    name="$base"
+    # Strip trailing "-pyX[.Y[.Z]]"
+    name="${name%-py[0-9.]##}"
+    # Strip trailing "-<hash>" (poetry-style)
+    if [[ $name == *-[A-Za-z0-9]## ]]; then
+      name="${name%-[A-Za-z0-9]##}"
     fi
-
-    export PROMPT_PY_ENV_NAME
+    # Optional: if the name still prefixes the cwd, snap to cwd
+    [[ $name == ${PWD:t}-* ]] && name="${PWD:t}"
   fi
+
+  export PROMPT_PY_ENV_NAME="$name"
 }
+
+
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _prompt_set_py_name
 
