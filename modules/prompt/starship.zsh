@@ -18,18 +18,13 @@ _prompt_set_py_name() {
   local name=""
 
   if [[ $base == ".venv" ]]; then
-    # Show the project folder that owns .venv
-    name="${envpath:h:t}"
+    name="${envpath:h:t}"           # project folder that owns .venv
   else
     name="$base"
-    # Strip trailing "-pyX[.Y[.Z]]"
-    name="${name%-py[0-9.]##}"
-    # Strip trailing "-<hash>" (poetry-style)
+    name="${name%-py[0-9.]##}"      # strip -py3.x
     if [[ $name == *-[A-Za-z0-9]## ]]; then
-      name="${name%-[A-Za-z0-9]##}"
+      name="${name%-[A-Za-z0-9]##}" # strip trailing hash
     fi
-    # Optional: if the name still prefixes the cwd, snap to cwd
-    [[ $name == ${PWD:t}-* ]] && name="${PWD:t}"
   fi
 
   export PROMPT_PY_ENV_NAME="$name"
