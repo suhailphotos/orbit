@@ -51,24 +51,44 @@ _uv_ensure_sync() {
   fi
 }
 
+# Returns the interpreter uv thinks this project should use,
+# based on pyproject.toml [project.requires-python], .python-version, runtime.txt, etc.
+# Falls back to 3.11.7 only if the project doesn't specify anything.
+_uv_desired_python_for_project() {
+  local root="$1"
+  local resolved=""
+  resolved="$( (cd "$root" && uv python find --project 2>/dev/null) || true )"
+  echo "${resolved:-3.11.7}"  # fallback only when the project is silent
+}
+
 _uv_activate_in_project() {
   local root="$1"
   [[ -d "$root" ]] || { echo "Project not found: $root" >&2; return 1; }
   cd "$root" || return 1
 
-  # Make sure we’re not “carrying” someone else’s venv (prevents your Ledu warning)
   _orbit_py_deactivate
 
-  # Ensure a venv exists (uv will create .venv if missing)
-  if [[ ! -d .venv ]]; then
-    uv venv --python "$(uv python find --project 2>/dev/null || echo 3.11)"
+  # Decide interpreter: project first, otherwise 3.11.7 (your current standard)
+  local want_py; want_py="$(_uv_desired_python_for_project "$root")"
+
+  # Rebuild venv if missing, broken, or version mismatch
+  if [[ -d .venv && -x .venv/bin/python ]]; then
+    local cur ver_cur ver_want
+    cur=".venv/bin/python"
+    ver_cur="$("$cur" -c 'import platform;print(platform.python_version())' 2>/dev/null || echo "")"
+    ver_want="$("$want_py" -c 'import platform;print(platform.python_version())' 2>/dev/null || echo "")"
+    if [[ -z "$ver_cur" || -z "$ver_want" || "$ver_cur" != "$ver_want" ]]; then
+      rm -rf .venv
+    fi
+  else
+    rm -rf .venv 2>/dev/null || true
   fi
 
-  # Bring deps up to date
-  _uv_ensure_sync
+  [[ -d .venv ]] || uv venv --python "$want_py"
 
-  # Activate (idempotent)
-  source ".venv/bin/activate"
+  # Lock/sync and activate
+  if [[ -f uv.lock ]]; then uv sync --frozen; else uv lock && uv sync; fi
+  source .venv/bin/activate
 }
 
 # --- Optional: Conda override on Linux hosts that insist on it ---------------
