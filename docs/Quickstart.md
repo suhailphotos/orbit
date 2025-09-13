@@ -2,7 +2,7 @@
 
 ## Install
 
-### One-liner
+### One‑liner
 
 Add this to `~/.zshrc` (or run the installer below to write it for you):
 

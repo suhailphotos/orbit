@@ -6,7 +6,7 @@ Lightweight helper for launching/working with Nuke projects.
 
 | Command | What it does |
 |---|---|
-| `nukeUtils -e` | Activate Poetry env for `nukeUtils`, create `~/.nuke` if needed, and append `plugins/` to `NUKE_PATH`. |
+| `nukeUtils -e` | Activate **uv** env for `nukeUtils`, create `~/.nuke` if needed, and prepend `plugins/` to `NUKE_PATH`. |
 | `nukeUtils launch` | Launch Nuke (`Nuke`, `NukeX`, or `NukeStudio`), using the discovered default or your overrides. |
 
 ### Environment

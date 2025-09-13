@@ -17,8 +17,9 @@ Orbit exports a small, predictable set of variables. Values are platform‑aware
 | `ORBIT_HAS_NUKE` | `0/1` | *(detected)* |
 | `ORBIT_NUKE_DEFAULT` | `Nuke15.0v4` | *(detected)* |
 | `ORBIT_NUKE_EDITIONS` | `Nuke NukeX NukeStudio` | Available editions. |
-| `ORBIT_UV_VENV_ROOT` | `~/.venvs` | Base dir for all per-project uv envs. |
-| `ORBIT_UV_DEFAULT_PY` | `auto-houdini / 3.12 / /usr/local/bin/python3.12` | Fallback interpreter when a project doesn’t specify one. auto-houdini derives MAJOR.MINOR from the installed Houdini Python.|
+| `ORBIT_UV_VENV_ROOT` | `~/.venvs` | Base dir for all per‑project uv envs. |
+| `ORBIT_UV_DEFAULT_PY` | `auto-houdini / 3.12 / /usr/local/bin/python3.12` | Fallback interpreter when a project doesn’t specify one. `auto-houdini` derives MAJOR.MINOR from the installed Houdini Python.|
+
 ## Paths / Projects
 
 | Variable | macOS | Linux | Notes |
@@ -51,7 +52,7 @@ Orbit exports a small, predictable set of variables. Values are platform‑aware
 | `ORBIT_LS_ICONS` | `0/1` | Icons toggle for eza. |
 | `ORBIT_DOTFILES_SGR` | `90` | Dim dotfiles with eza. |
 | `MANPAGER` | `col -bx \| bat -l man -p` | If `bat` exists. |
-| `TERMINFO_DIRS` | `~/.terminfo:/usr/share/terminfo` | Ensures per-user db first. |
+| `TERMINFO_DIRS` | `~/.terminfo:/usr/share/terminfo` | Ensures per‑user db first. |
 | `LANG`, `LC_CTYPE` | `C.UTF-8` or system UTF‑8 | Set late to ensure UTF‑8. |
 
 ## AI Mounts

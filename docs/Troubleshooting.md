@@ -2,26 +2,25 @@
 
 ## Houdini
 
-- **`hou use` says "Not inside a Poetry project".**  
+- **`hou use` says "Not inside a project".**  
   Run it from a directory that contains `pyproject.toml`, or set `HOU_PROJECT_ROOT=/abs/path`.
 
 - **`hou import` fails with missing symbols on macOS.**  
   Make sure `houdini_setup` was successfully sourced by `hou import` (or run `hou env` first).
 
 - **Houdini can’t see my module.**  
-  Prefer a packages JSON (Tessera) or run `hou pkgshim` to append your venv’s `site-packages` to `PYTHONPATH` at runtime.
+  Prefer a packages JSON (Tessera) or run `hou pkgshim` to append your env’s `site‑packages` to `PYTHONPATH` at runtime.
 
-## `pkg` / Poetry
+## `pkg` / uv
 
-- **No venv yet.**  
-  `pkg` runs `poetry install` automatically, then activates the new venv.
+- **No env yet.**  
+  `pkg` (and `hou use`) will create the env on first run using `uv venv` + `uv sync`.
 
 - **Switching projects frequently.**  
-  `pkg` sources the target venv even if another is active. This is safe in practice; if you want to hard‑deactivate first, you can add a tiny helper to your environment:
-  ```zsh
-  _py_deactivate_if_needed() { command -v deactivate >/dev/null 2>&1 && deactivate || true; }
-  ```
-  And call it before activating inside your custom wrappers.
+  `pkg` safely deactivates an unrelated active env before activating the target.
+
+- **Where is my env?**  
+  Envs live under `~/.venvs/<project>`. Print the current setting with `uvp`.
 
 ## Nuke
 
