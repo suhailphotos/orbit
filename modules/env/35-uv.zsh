@@ -7,9 +7,19 @@
 # --- uv "tool" shims (global CLIs installed by `uv tool`) ---
 if command -v uv >/dev/null 2>&1; then
   _uv_tool_dir="$(uv tool dir 2>/dev/null || true)"
-  [[ -n "$_uv_tool_dir" ]] && orbit_prepend_path "$_uv_tool_dir/bin"
+  if [[ -n "$_uv_tool_dir" ]]; then
+    # Ensure the bin exists even before first install
+    mkdir -p "$_uv_tool_dir/bin"
+    orbit_prepend_path "$_uv_tool_dir/bin"
+  fi
   unset _uv_tool_dir
+else
+  # Fallback for machines without uv yet (use XDG default)
+  _uv_fallback="${XDG_DATA_HOME:-$HOME/.local/share}/uv/tools/bin"
+  [[ -d "$_uv_fallback" ]] && orbit_prepend_path "$_uv_fallback"
+  unset _uv_fallback
 fi
+
 
 # Find project root: prefer git; else walk up for pyproject.toml
 _orbit_uv_project_root() {
