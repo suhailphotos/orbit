@@ -4,6 +4,13 @@
 : ${ORBIT_UV_VENV_ROOT:="$HOME/.venvs"}     # where project envs live (plural)
 : ${ORBIT_UV_DEFAULT_PY:="auto-houdini"}   # fallback interpreter spec (the knob)
 
+# --- uv "tool" shims (global CLIs installed by `uv tool`) ---
+if command -v uv >/dev/null 2>&1; then
+  _uv_tool_dir="$(uv tool dir 2>/dev/null || true)"
+  [[ -n "$_uv_tool_dir" ]] && orbit_prepend_path "$_uv_tool_dir/bin"
+  unset _uv_tool_dir
+fi
+
 # Find project root: prefer git; else walk up for pyproject.toml
 _orbit_uv_project_root() {
   local root
