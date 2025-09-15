@@ -4,21 +4,24 @@
 : ${ORBIT_UV_VENV_ROOT:="$HOME/.venvs"}     # where project envs live (plural)
 : ${ORBIT_UV_DEFAULT_PY:="auto-houdini"}   # fallback interpreter spec (the knob)
 
-# --- uv "tool" shims (global CLIs installed by `uv tool`) ---
+# Keep uv-managed tool envs here (default is fine)
+export UV_TOOL_DIR="${UV_TOOL_DIR:-$HOME/.local/share/uv/tools}"
+
+# Put uv *shims* in their own directory (NOT inside $UV_TOOL_DIR)
+export UV_TOOL_BIN_DIR="${UV_TOOL_BIN_DIR:-$HOME/.local/share/uv/bin}"
+
+# Add the shim dir to PATH (only when it exists)
+[[ -d "$UV_TOOL_BIN_DIR" ]] && orbit_prepend_path "$UV_TOOL_BIN_DIR"
+
+# Cheap hook so PATH updates as soon as uv creates the dir (no pre-creating!)
 if command -v uv >/dev/null 2>&1; then
-  _uv_tool_dir="$(uv tool dir 2>/dev/null || true)"
-  if [[ -n "$_uv_tool_dir" ]]; then
-    # Add on-demand once uv creates the bin dir
-    _uv_path_hook() {
-      local d="$_uv_tool_dir/bin"
-      [[ -d "$d" ]] || return
-      case ":$PATH:" in *":$d:"*) ;; *) path=("$d" $path); rehash ;; esac
-    }
-    autoload -Uz add-zsh-hook
-    add-zsh-hook precmd _uv_path_hook
-    _uv_path_hook   # run once now
-  fi
-  unset _uv_tool_dir
+  _uv_shim_path_hook() {
+    [[ -d "$UV_TOOL_BIN_DIR" ]] || return
+    case ":$PATH:" in *":$UV_TOOL_BIN_DIR:"*) ;; *) path=("$UV_TOOL_BIN_DIR" $path); rehash ;; esac
+  }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd _uv_shim_path_hook
+  _uv_shim_path_hook
 fi
 
 
