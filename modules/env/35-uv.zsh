@@ -4,27 +4,17 @@
 : ${ORBIT_UV_VENV_ROOT:="$HOME/.venvs"}     # where project envs live (plural)
 : ${ORBIT_UV_DEFAULT_PY:="auto-houdini"}   # fallback interpreter spec (the knob)
 
-# Keep uv-managed tool envs here (default is fine)
+# Where uv stores tool envs (fine as-is)
 export UV_TOOL_DIR="${UV_TOOL_DIR:-$HOME/.local/share/uv/tools}"
 
-# Put uv *shims* in their own directory (NOT inside $UV_TOOL_DIR)
+# Keep shims separate from everything else
 export UV_TOOL_BIN_DIR="${UV_TOOL_BIN_DIR:-$HOME/.local/share/uv/bin}"
 
-# Add the shim dir to PATH (only when it exists)
-[[ -d "$UV_TOOL_BIN_DIR" ]] && orbit_prepend_path "$UV_TOOL_BIN_DIR"
+# Ensure the dir exists *before* any uv tool install, then put it first on PATH
+mkdir -p "$UV_TOOL_BIN_DIR"
+path=("$UV_TOOL_BIN_DIR" ${path:#$UV_TOOL_BIN_DIR})
 
-# Cheap hook so PATH updates as soon as uv creates the dir (no pre-creating!)
-if command -v uv >/dev/null 2>&1; then
-  _uv_shim_path_hook() {
-    [[ -d "$UV_TOOL_BIN_DIR" ]] || return
-    case ":$PATH:" in *":$UV_TOOL_BIN_DIR:"*) ;; *) path=("$UV_TOOL_BIN_DIR" $path); rehash ;; esac
-  }
-  autoload -Uz add-zsh-hook
-  add-zsh-hook precmd _uv_shim_path_hook
-  _uv_shim_path_hook
-fi
-
-
+# IMPORTANT: do NOT add "$(uv tool dir)/bin" to PATH anywhere (it confuses uv)
 # Find project root: prefer git; else walk up for pyproject.toml
 _orbit_uv_project_root() {
   local root
