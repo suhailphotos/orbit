@@ -8,16 +8,17 @@
 if command -v uv >/dev/null 2>&1; then
   _uv_tool_dir="$(uv tool dir 2>/dev/null || true)"
   if [[ -n "$_uv_tool_dir" ]]; then
-    # Ensure the bin exists even before first install
-    mkdir -p "$_uv_tool_dir/bin"
-    orbit_prepend_path "$_uv_tool_dir/bin"
+    # Add on-demand once uv creates the bin dir
+    _uv_path_hook() {
+      local d="$_uv_tool_dir/bin"
+      [[ -d "$d" ]] || return
+      case ":$PATH:" in *":$d:"*) ;; *) path=("$d" $path); rehash ;; esac
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _uv_path_hook
+    _uv_path_hook   # run once now
   fi
   unset _uv_tool_dir
-else
-  # Fallback for machines without uv yet (use XDG default)
-  _uv_fallback="${XDG_DATA_HOME:-$HOME/.local/share}/uv/tools/bin"
-  [[ -d "$_uv_fallback" ]] && orbit_prepend_path "$_uv_fallback"
-  unset _uv_fallback
 fi
 
 
