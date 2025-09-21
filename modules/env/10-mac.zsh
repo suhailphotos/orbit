@@ -41,6 +41,6 @@ if [ -d "$HOME/Documents/Scratch/screenshots" ]; then
 fi
 
 if [ -d "$HOME/Documents/Scratch/exports" ]; then
-  export prjexp="$HOME/Documents/Scratch/exports"
+  export projexp="$HOME/Documents/Scratch/exports"
 fi
 
