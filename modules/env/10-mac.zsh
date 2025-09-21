@@ -35,3 +35,12 @@ if [[ -z "${NVIM_BG_FORCE-}" ]]; then
 else
   export NVIM_BG="$NVIM_BG_FORCE"
 fi
+
+if [ -d "$HOME/Documents/Scratch/screenshots" ]; then
+  export scrcap="$HOME/Documents/Scratch/screenshots"
+fi
+
+if [ -d "$HOME/Documents/Scratch/exports" ]; then
+  export prjexp="$HOME/Documents/Scratch/exports"
+fi
+
