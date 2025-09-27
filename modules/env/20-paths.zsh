@@ -13,6 +13,8 @@ esac
 export MATRIX="$DROPBOX/matrix"
 export DOCKER="$MATRIX/docker"
 export BASE_DIR="$MATRIX/shellscripts"
+export PACKAGES="$MATRIX/packages"
+export CRATES="$MATRIX/crates"
 
 # Synology data library
 case "$ORBIT_PLATFORM" in

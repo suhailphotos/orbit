@@ -18,21 +18,36 @@ vix() {
 }
 
 # --------------------------------------------------
-# Direct aliases
+# Roots
+# --------------------------------------------------
+alias matrix='cd $DROPBOX/matrix'
+alias packages='cd $PACKAGES'
+alias crates='cd $CRATES'
+alias bindu='cd $XDG_CONFIG_HOME'
+
+# --------------------------------------------------
+# Commands
+# --------------------------------------------------
+alias gs='git status'
+alias lg='lazygit'
+
+# --------------------------------------------------
+# Projects
 # --------------------------------------------------
 alias orbit='cd $DROPBOX/matrix/orbit'
-alias bindu='cd $XDG_CONFIG_HOME'
 alias helix='cd $DROPBOX/matrix/helix'
 alias lilac='cd $DROPBOX/matrix/lilac'
 alias mira='cd $DROPBOX/matrix/mira'
 alias tessera='cd $DROPBOX/matrix/tessera'
-alias packages='cd $DROPBOX/matrix/packages'
-alias crates='cd $DROPBOX/matrix/crates'
 alias truss='cd $DROPBOX/matrix/truss'
-alias matrix='cd $DROPBOX/matrix'
 alias iris='cd $DROPBOX/matrix/iris'
-alias apogee='cd $DROPBOX/matrix/crates/apogee'
 alias atrium='cd $DROPBOX/matrix/atrium'
+
+# --------------------------------------------------
+# Crates
+# --------------------------------------------------
+alias apogee='cd $DROPBOX/matrix/crates/apogee'
 alias swivel='cd $DROPBOX/matrix/crates/swivel'
-alias lg='lazygit'
-alias gs='git status'
+alias rillio='cd $DROPBOX/matrix/crates/rillio'
+
+
