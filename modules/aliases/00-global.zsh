@@ -36,8 +36,6 @@ alias lg='lazygit'
 # --------------------------------------------------
 alias orbit='cd $DROPBOX/matrix/orbit'
 alias helix='cd $DROPBOX/matrix/helix'
-alias lilac='cd $DROPBOX/matrix/lilac'
-alias mira='cd $DROPBOX/matrix/mira'
 alias tessera='cd $DROPBOX/matrix/tessera'
 alias truss='cd $DROPBOX/matrix/truss'
 alias iris='cd $DROPBOX/matrix/iris'
@@ -50,4 +48,10 @@ alias apogee='cd $DROPBOX/matrix/crates/apogee'
 alias swivel='cd $DROPBOX/matrix/crates/swivel'
 alias rillio='cd $DROPBOX/matrix/crates/rillio'
 
+# --------------------------------------------------
+# Neovim projects
+# --------------------------------------------------
+alias lilac='cd $DROPBOX/matrix/lilac'
+alias mira='cd $DROPBOX/matrix/mira'
+alias notio='cd $DROPBOX/matrix/nvim/notio'
 
