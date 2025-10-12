@@ -47,6 +47,7 @@ alias atrium='cd $DROPBOX/matrix/atrium'
 alias apogee='cd $DROPBOX/matrix/crates/apogee'
 alias swivel='cd $DROPBOX/matrix/crates/swivel'
 alias rillio='cd $DROPBOX/matrix/crates/rillio'
+alias rusk='cd $DROPBOX/matrix/crates/rusk'
 
 # --------------------------------------------------
 # Neovim projects
