@@ -19,14 +19,15 @@ orbit_append_path() {
 
 orbit_load_dotenv() {
   local file=$1; [[ -f $file ]] || return
-  while IFS='=' read -r k v; do
-    [[ $k =~ ^# || -z $k ]] && continue
+  local k v
+  while IFS='=' read -r k v || [[ -n $k ]]; do
+    [[ $k == \#* || -z $k ]] && continue
     eval v=\"${v}\"
+    export "$k=$v"
     if [[ $v == op://* ]]; then
-      _orbit_prepare_op
-      v="$(op read "$v" 2>/dev/null || true)"
+      typeset -ga ORBIT_SECRET_KEYS
+      ORBIT_SECRET_KEYS+=("$k")
     fi
-    export "$k"="$v"
   done <"$file"
 }
 
