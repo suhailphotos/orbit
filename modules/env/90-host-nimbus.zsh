@@ -47,4 +47,36 @@ for _root in "${_conda_roots[@]}"; do
     break
   fi
 done
+
+# --- Auto-activate conda base on interactive shells (nimbus only) ---
+# Respect a manual opt-out: ORBIT_NO_CONDA_AUTO=1
+if [[ -o interactive && "${ORBIT_NO_CONDA_AUTO:-0}" -ne 1 ]]; then
+  if command -v conda >/dev/null 2>&1; then
+    # Only if no conda env is already active
+    if [[ "${CONDA_SHLVL:-0}" -eq 0 ]]; then
+      conda activate base 2>/dev/null || true
+    fi
+  fi
+fi
+
 unset _conda_roots _root
+
+# --- Remote Mac paths (only if reachable over SSH) ---
+# These are *remote* specs you can pass to scp/rsync or use in helpers.
+# Example:  rsync -av somefile "$macnotes/"
+if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents"' >/dev/null 2>&1; then
+  export macdocs='quasar:~/Documents'
+
+  if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents/Scratch/notes"' >/dev/null 2>&1; then
+    export macnotes='quasar:~/Documents/Scratch/notes'
+  fi
+
+  if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents/Scratch/exports"' >/dev/null 2>&1; then
+    export macexports='quasar:~/Documents/Scratch/exports'
+  fi
+fi
+
+# Optional: reuse 'projexp' name on Linux when Mac is reachable
+if [[ -n ${macexports-} ]]; then
+  export projexp="$macexports"
+fi
