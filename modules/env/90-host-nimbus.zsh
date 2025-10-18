@@ -61,22 +61,15 @@ fi
 
 unset _conda_roots _root
 
-# --- Remote Mac paths (only if reachable over SSH) ---
-# These are *remote* specs you can pass to scp/rsync or use in helpers.
-# Example:  rsync -av somefile "$macnotes/"
-if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents"' >/dev/null 2>&1; then
-  export macdocs='quasar:~/Documents'
+# --- Remote Mac paths (no probing at login) ---
+export macdocs='quasar:~/Documents'
+export macnotes='quasar:~/Documents/Scratch/notes'
+export macexports='quasar:~/Documents/Scratch/exports'
+export projexp="$macexports"
 
-  if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents/Scratch/notes"' >/dev/null 2>&1; then
-    export macnotes='quasar:~/Documents/Scratch/notes'
-  fi
-
-  if ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'test -d "$HOME/Documents/Scratch/exports"' >/dev/null 2>&1; then
-    export macexports='quasar:~/Documents/Scratch/exports'
-  fi
-fi
-
-# Optional: reuse 'projexp' name on Linux when Mac is reachable
-if [[ -n ${macexports-} ]]; then
-  export projexp="$macexports"
-fi
+# If you ever want a quick “is it there?” check, run:
+orbit_mac_check() {
+  local ok=0
+  ssh -o BatchMode=yes -o ConnectTimeout=1 quasar 'true' >/dev/null 2>&1 && ok=1
+  (( ok )) && echo "quasar reachable" || echo "quasar unreachable"
+}
