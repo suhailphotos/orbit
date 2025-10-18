@@ -9,12 +9,26 @@ path=(/opt/homebrew/bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $path)
 
 _ORBIT_DIR=${0:A:h:h}    # path to repo root
 export ORBIT_HOME="$_ORBIT_DIR"
+
+# ── TEMP profiling (opt-in) ────────────────────────────────────────────────
+if [[ ${ORBIT_PROFILE:-0} -eq 1 ]]; then
+  source "$_ORBIT_DIR/core/profile.zsh"
+  orbit_mark "bootstrap:start"
+fi
+
 source "$_ORBIT_DIR/core/detect_platform.zsh"
 source "$_ORBIT_DIR/core/path_helpers.zsh"
 source "$_ORBIT_DIR/core/detect_apps.zsh"
 
 # 1) Secrets first
 source "$_ORBIT_DIR/core/secrets.zsh"
+
+
+# ── TEMP profiling summary ─────────────────────────────────────────────────
+if [[ ${ORBIT_PROFILE:-0} -eq 1 ]]; then
+  orbit_mark "bootstrap:end"
+  _orbit_profile_done
+fi
 
 # 2) Environment (ordered)
 for f in $_ORBIT_DIR/modules/env/*.zsh(.N); do source "$f"; done
