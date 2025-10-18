@@ -10,7 +10,22 @@ mkdir -p "${ORBIT_PROFILE_LOG:h}" 2>/dev/null || true
 
 typeset -gF _oprof_t0=${EPOCHREALTIME:-0.0}
 
-_oprof_write() { printf '%(%H:%M:%S)T\t%0.3f\t%s\n' -1 "$1" "$2" >>"$ORBIT_PROFILE_LOG"; }
+# --- replace the existing _oprof_write with this ---
+
+# portable timestamp helper
+_oprof_ts() {
+  # use zsh's prompt-style date expansion if available (no extra modules)
+  if print -P "%D{%H:%M:%S}" >/dev/null 2>&1; then
+    print -P "%D{%H:%M:%S}"
+  else
+    date +%H:%M:%S
+  fi
+}
+
+_oprof_write() {
+  # $1 = duration (float), $2 = message
+  printf '%s\t%0.3f\t%s\n' "$(_oprof_ts)" "$1" "$2" >>"$ORBIT_PROFILE_LOG"
+}
 
 # time every "source" (including modules/env/* loops and prompts)
 source() {
