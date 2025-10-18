@@ -1,61 +1,54 @@
-# core/profile.zsh — opt-in micro-profiler for Orbit init (gated by ORBIT_PROFILE=1)
+# core/profile.zsh — portable micro-profiler (Nimbus-safe)
 
-# lightweight deps
+# Best-effort light deps
 zmodload zsh/datetime 2>/dev/null || true
 zmodload zsh/zprof     2>/dev/null || true
 
-# where logs go
+# Log file
 : ${ORBIT_PROFILE_LOG:="${XDG_CACHE_HOME:-$HOME/.cache}/orbit/profile.$$.log"}
 mkdir -p "${ORBIT_PROFILE_LOG:h}" 2>/dev/null || true
 
-typeset -gF _oprof_t0=${EPOCHREALTIME:-0.0}
+# Monotonic-ish "now" that works with or without EPOCHREALTIME
+__oprof_now() { print -r -- "${EPOCHREALTIME:-$EPOCHSECONDS}"; }
 
-# --- replace the existing _oprof_write with this ---
+typeset -gF _oprof_t0=$(__oprof_now)
 
-# portable timestamp helper
-_oprof_ts() {
-  # use zsh's prompt-style date expansion if available (no extra modules)
-  if print -P "%D{%H:%M:%S}" >/dev/null 2>&1; then
-    print -P "%D{%H:%M:%S}"
-  else
-    date +%H:%M:%S
-  fi
-}
-
+# One line writer: HH:MM:SS \t seconds \t message
 _oprof_write() {
-  # $1 = duration (float), $2 = message
-  printf '%s\t%0.3f\t%s\n' "$(_oprof_ts)" "$1" "$2" >>"$ORBIT_PROFILE_LOG"
+  local ts; ts="$(print -P "%D{%H:%M:%S}")"
+  printf '%s\t%0.3f\t%s\n' "$ts" "$1" "$2" >>"$ORBIT_PROFILE_LOG" 2>/dev/null
 }
 
-# time every "source" (including modules/env/* loops and prompts)
+# Time every "source" call (including module loops)
 source() {
   local f="$1"; shift || true
-  local s=${EPOCHREALTIME:-0.0}
-  builtin . "$f" "$@"      # call the real builtin
-  local d; (( d = ${EPOCHREALTIME:-0.0} - s ))
+  local s=$(__oprof_now)
+  builtin . "$f" "$@"
+  local d; (( d = $(__oprof_now) - s ))
   _oprof_write "$d" "source $f"
 }
 
-# ad-hoc timers for explicit hotspots if you want to sprinkle them in
+# Ad-hoc timers
 orbit_time() {
   local label="$1"; shift
-  local s=${EPOCHREALTIME:-0.0}
-  "$@"; local rc=$?
-  local d; (( d = ${EPOCHREALTIME:-0.0} - s ))
+  local s=$(__oprof_now); "$@"; local rc=$?
+  local d; (( d = $(__oprof_now) - s ))
   _oprof_write "$d" "RUN  $label (rc=$rc)"
   return $rc
 }
 orbit_mark() {
   local label="$*"
-  local d; (( d = ${EPOCHREALTIME:-0.0} - _oprof_t0 ))
+  local d; (( d = $(__oprof_now) - _oprof_t0 ))
   _oprof_write "$d" "MARK $label"
 }
 
-# print summary and restore builtins
+# Summary + cleanup
 _orbit_profile_done() {
-  local total; (( total = ${EPOCHREALTIME:-0.0} - _oprof_t0 ))
+  local total; (( total = $(__oprof_now) - _oprof_t0 ))
   _oprof_write "$total" "TOTAL orbit bootstrap"
-  { echo; echo '— zprof (functions) —'; zprof; } >>"$ORBIT_PROFILE_LOG" 2>&1
-  unfunction source   2>/dev/null || true
+  if typeset -f zprof >/dev/null 2>&1; then
+    { echo; echo '— zprof (functions) —'; zprof; } >>"$ORBIT_PROFILE_LOG" 2>&1
+  fi
+  unfunction source 2>/dev/null || true
   unfunction orbit_time orbit_mark _orbit_profile_done 2>/dev/null || true
 }
