@@ -48,17 +48,6 @@ for _root in "${_conda_roots[@]}"; do
   fi
 done
 
-# --- Auto-activate conda base on interactive shells (nimbus only) ---
-# Respect a manual opt-out: ORBIT_NO_CONDA_AUTO=1
-if [[ -o interactive && "${ORBIT_NO_CONDA_AUTO:-0}" -ne 1 ]]; then
-  if command -v conda >/dev/null 2>&1; then
-    # Only if no conda env is already active
-    if [[ "${CONDA_SHLVL:-0}" -eq 0 ]]; then
-      conda activate base 2>/dev/null || true
-    fi
-  fi
-fi
-
 unset _conda_roots _root
 
 # --- Remote Mac paths (no probing at login) ---
