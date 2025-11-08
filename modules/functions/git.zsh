@@ -18,18 +18,15 @@ merge_branch() {
 
 # Push and copy GitHub blob URL for a file at HEAD
 git_blob_push() {
-  emulate -L zsh
-  setopt pipefail
-
   if [[ -z "$1" ]]; then
     echo "Usage: git_blob_push <path/to/file> [remote] [branch]" >&2
     return 1
   fi
 
-  local file="$1"; shift
-  local remote="${1:-origin}"
-  # default branch = current branch
-  local branch="${2:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null)}"
+  local file="$1"
+  local remote="${2:-origin}"
+  local branch
+  branch="${3:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null)}"
 
   if [[ -z "$branch" ]]; then
     echo "Could not determine current branch." >&2
@@ -43,15 +40,15 @@ git_blob_push() {
   fi
 
   # 1) Push
-  git push "$remote" "$branch" || return 1
+  command git push "$remote" "$branch" || return 1
 
   # 2) Resolve remote URL (handle SSH + HTTPS)
   local remote_url
-  remote_url="$(git remote get-url "$remote")" || return 1
+  remote_url="$(command git remote get-url "$remote")" || return 1
   remote_url="${remote_url%.git}"
 
   if [[ "$remote_url" == git@*:*/* ]]; then
-    # git@github.com:user/repo  →  https://github.com/user/repo
+    # git@github.com:user/repo → https://github.com/user/repo
     local hostpath="${remote_url#git@}"      # github.com:user/repo
     local host="${hostpath%%:*}"             # github.com
     local path="${hostpath#*:}"              # user/repo
@@ -60,15 +57,13 @@ git_blob_push() {
 
   # 3) Commit hash
   local commit
-  commit="$(git rev-parse HEAD)" || return 1
+  commit="$(command git rev-parse HEAD)" || return 1
 
   # 4) Path relative to repo root
-  local rel
-  rel="$(git ls-files --full-name "$file" 2>/dev/null || true)"
+  local rel root
+  rel="$(command git ls-files --full-name "$file" 2>/dev/null || true)"
   if [[ -z "$rel" ]]; then
-    # fallback: strip repo root prefix if ls-files didn't know it
-    local root
-    root="$(git rev-parse --show-toplevel)" || return 1
+    root="$(command git rev-parse --show-toplevel)" || return 1
     rel="${file#$root/}"
   fi
 
@@ -82,6 +77,6 @@ git_blob_push() {
     printf '%s' "$url" | pbcopy
     echo "(copied to clipboard)"
   else
-    echo "(pbcopy not found; install or use Orbit's clipboard helpers)" >&2
+    echo "(pbcopy not found; URL not copied automatically)" >&2
   fi
 }
