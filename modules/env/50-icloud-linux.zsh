@@ -11,13 +11,11 @@
 # 1) Generic config (overridable per host via env)
 # --------------------------------------------------------------------
 
-# SSH host alias for the current Mac (defined in ~/.ssh/config).
-# Override per-machine if needed:
-#   export ORBIT_ICLOUD_HOST="new-mac-host"
+# SSH host alias for the Mac that exposes Documents.
+# Defined in ~/.ssh/config via helix ssh_config_local.sh, e.g. "quasar".
 : "${ORBIT_ICLOUD_HOST:=quasar}"
 
-# Remote path *relative to the Mac's $HOME*
-# This becomes $HOME/Documents on the Mac side.
+# Remote path *relative to the Mac's $HOME* (so "Documents" → ~/Documents)
 : "${ORBIT_ICLOUD_REMOTE_PATH:=Documents}"
 
 # Identity to use for SSH (override if a box uses a different key)
@@ -26,24 +24,22 @@
 # Local mount root on the Linux side
 : "${ORBIT_ICLOUD_MOUNT_ROOT:=$HOME/icloudDocs}"
 
-# What the rest of your tooling should use:
+# This is what the rest of your tooling should use:
 # projexp → icloudDocs/Scratch/exports (once mounted)
 export projexp="${ORBIT_ICLOUD_MOUNT_ROOT}/Scratch/exports"
 
-# Ensure the mount root exists (no output, ignore errors)
+# Ensure the mount root exists (noop if already there)
 mkdir -p "${ORBIT_ICLOUD_MOUNT_ROOT}" 2>/dev/null || true
 
 # --------------------------------------------------------------------
-# 2) Helpers to mount / unmount (no auto-mount at startup)
+# 2) Helpers to mount / unmount (manual / on-demand only)
 # --------------------------------------------------------------------
 
 mount_icloudDocs() {
-  # If sshfs isn't installed, silently fail
-  if ! command -v sshfs >/dev/null 2>&1; then
-    return 1
-  fi
+  # No sshfs → just fail quietly
+  command -v sshfs >/dev/null 2>&1 || return 1
 
-  # Already mounted? Success, nothing to do.
+  # Already mounted?
   if mount | grep -q "on ${ORBIT_ICLOUD_MOUNT_ROOT} "; then
     return 0
   fi
@@ -52,14 +48,11 @@ mount_icloudDocs() {
         "${ORBIT_ICLOUD_MOUNT_ROOT}" \
         -o IdentityFile="${ORBIT_ICLOUD_IDENTITY}" \
         -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 \
-        >/dev/null 2>&1
+        >/dev/null 2>&1 || return 1
 
-  # If mount now shows up, treat as success; otherwise fail silently
-  if mount | grep -q "on ${ORBIT_ICLOUD_MOUNT_ROOT} "; then
-    return 0
-  else
-    return 1
-  fi
+  # Optionally verify mount; stay silent regardless
+  mount | grep -q "on ${ORBIT_ICLOUD_MOUNT_ROOT} " || return 1
+  return 0
 }
 
 unmount_icloudDocs() {
