@@ -1,4 +1,4 @@
-# modules/env/40-icloud-linux.zsh
+# modules/env/50-icloud-linux.zsh
 # Linux-wide wiring to mount a Mac's Documents (incl. Scratch/exports) over SSHFS.
 
 # Only run on Linux / WSL
@@ -12,12 +12,12 @@
 # --------------------------------------------------------------------
 
 # SSH host alias for the current Mac (defined in ~/.ssh/config).
-# You can override this per-machine:
+# Override per-machine if needed:
 #   export ORBIT_ICLOUD_HOST="new-mac-host"
 : "${ORBIT_ICLOUD_HOST:=quasar}"
 
 # Remote path *relative to the Mac's $HOME*
-# This becomes:  $HOME/Documents  on the Mac side.
+# This becomes $HOME/Documents on the Mac side.
 : "${ORBIT_ICLOUD_REMOTE_PATH:=Documents}"
 
 # Identity to use for SSH (override if a box uses a different key)
@@ -26,11 +26,11 @@
 # Local mount root on the Linux side
 : "${ORBIT_ICLOUD_MOUNT_ROOT:=$HOME/icloudDocs}"
 
-# This is what the rest of your tooling should use:
+# What the rest of your tooling should use:
 # projexp → icloudDocs/Scratch/exports (once mounted)
 export projexp="${ORBIT_ICLOUD_MOUNT_ROOT}/Scratch/exports"
 
-# Make sure the mount root exists (doesn't matter if nothing is mounted yet)
+# Ensure the mount root exists (no output, ignore errors)
 mkdir -p "${ORBIT_ICLOUD_MOUNT_ROOT}" 2>/dev/null || true
 
 # --------------------------------------------------------------------
@@ -38,30 +38,28 @@ mkdir -p "${ORBIT_ICLOUD_MOUNT_ROOT}" 2>/dev/null || true
 # --------------------------------------------------------------------
 
 mount_icloudDocs() {
-  # If sshfs isn't installed, just print a quiet hint and bail.
+  # If sshfs isn't installed, silently fail
   if ! command -v sshfs >/dev/null 2>&1; then
-    echo "mount_icloudDocs: sshfs not installed on this machine; skipping" >&2
     return 1
   fi
 
-  # Already mounted?
+  # Already mounted? Success, nothing to do.
   if mount | grep -q "on ${ORBIT_ICLOUD_MOUNT_ROOT} "; then
-    echo "iCloud already mounted at ${ORBIT_ICLOUD_MOUNT_ROOT}"
     return 0
   fi
 
   sshfs "${ORBIT_ICLOUD_HOST}:${ORBIT_ICLOUD_REMOTE_PATH}" \
         "${ORBIT_ICLOUD_MOUNT_ROOT}" \
         -o IdentityFile="${ORBIT_ICLOUD_IDENTITY}" \
-        -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3
+        -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 \
+        >/dev/null 2>&1
 
+  # If mount now shows up, treat as success; otherwise fail silently
   if mount | grep -q "on ${ORBIT_ICLOUD_MOUNT_ROOT} "; then
-    echo "Mounted ${ORBIT_ICLOUD_HOST}:${ORBIT_ICLOUD_REMOTE_PATH} at ${ORBIT_ICLOUD_MOUNT_ROOT}"
     return 0
   else
-    echo "mount_icloudDocs: sshfs failed (host unreachable? key missing?); leaving things as-is." >&2
     return 1
-  end
+  fi
 }
 
 unmount_icloudDocs() {
