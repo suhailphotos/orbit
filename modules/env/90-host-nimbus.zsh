@@ -54,7 +54,6 @@ unset _conda_roots _root
 export macdocs='quasar:~/Documents'
 export macnotes='quasar:~/Documents/Scratch/notes'
 export macexports='quasar:~/Documents/Scratch/exports'
-export projexp="$macexports"
 
 # If you ever want a quick “is it there?” check, run:
 orbit_mac_check() {
