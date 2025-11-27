@@ -1,86 +1,32 @@
 # modules/env/18-fzf.zsh
-# fzf wiring for Orbit (Zsh)
+
+# Debug: see if this file even runs
+echo "[orbit:fzf] loading 18-fzf.zsh (shell flags: $-)" >&2
 
 # Only in interactive shells
-[[ -o interactive ]] || return 0
+if [[ $- != *i* ]]; then
+  echo "[orbit:fzf] non-interactive shell, skipping" >&2
+  return
+fi
 
-# Soft toggle if you ever want to turn it off per-host:
-: ${ORBIT_USE_FZF:=1}
-(( ORBIT_USE_FZF )) || return 0
-
-# Need fzf itself
+# Need fzf
 if ! command -v fzf >/dev/null 2>&1; then
-  return 0
+  echo "[orbit:fzf] fzf not found in \$PATH, skipping" >&2
+  return
 fi
 
-# -------------------------
-# 1) Sensible defaults
-# -------------------------
-# Prefer ripgrep/fd if available (works with your search env module)
-if command -v rg >/dev/null 2>&1; then
-  # Honor your shared ignore file via RIPGREP_CONFIG_PATH
-  export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
-elif command -v fd >/dev/null 2>&1; then
-  export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
-fi
-
-# Preview window if bat is around
-if command -v bat >/dev/null 2>&1 || command -v batcat >/dev/null 2>&1; then
-  : ${FZF_DEFAULT_OPTS:="--height 40% --border"}
-  FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --preview 'bat --style=numbers --color=always --line-range=:200 {} 2>/dev/null || batcat --style=numbers --color=always --line-range=:200 {} 2>/dev/null || cat {} 2>/dev/null'"
-  export FZF_DEFAULT_OPTS
-fi
-
-# -------------------------
-# 2) Locate key-bindings.zsh
-# -------------------------
-_fzf_try_source() {
-  local f
-  for f in "$@"; do
-    [[ -r "$f" ]] || continue
-    source "$f"
-    return 0
-  done
-  return 1
-}
-
-_fzf_sourced=0
-
-# Common locations:
-# - Homebrew fzf on macOS
-# - Homebrew/Linuxbrew on Linux
-# - ~/.fzf installs
-# - XDG config-style installs
+# Try Homebrew path first
 if command -v brew >/dev/null 2>&1; then
-  # Try formula then opt path
-  local bp
-  bp="$(brew --prefix 2>/dev/null)"
-  _fzf_try_source \
-    "$bp/opt/fzf/shell/key-bindings.zsh" \
-    "$bp/share/fzf/key-bindings.zsh" \
-    "$bp/Cellar/fzf"/*/shell/key-bindings.zsh  && _fzf_sourced=1
+  FZF_BINDINGS="$(brew --prefix fzf)/shell/key-bindings.zsh"
+else
+  FZF_BINDINGS="$HOME/.fzf/shell/key-bindings.zsh"
 fi
 
-if (( !_fzf_sourced )); then
-  _fzf_try_source \
-    "$HOME/.fzf/shell/key-bindings.zsh" \
-    "${XDG_CONFIG_HOME:-$HOME/.config}/fzf/key-bindings.zsh" \
-    "/usr/share/fzf/key-bindings.zsh" \
-    "/usr/local/share/fzf/key-bindings.zsh" && _fzf_sourced=1
+echo "[orbit:fzf] candidate key-bindings: $FZF_BINDINGS" >&2
+
+if [[ -r "$FZF_BINDINGS" ]]; then
+  echo "[orbit:fzf] sourcing: $FZF_BINDINGS" >&2
+  source "$FZF_BINDINGS"
+else
+  echo "[orbit:fzf] key-bindings.zsh not found or not readable" >&2
 fi
-
-# If we still didn’t find it, don’t error – just skip keybindings.
-(( _fzf_sourced )) || return 0
-
-# -------------------------
-# 3) Optional: small QoL wrappers
-# -------------------------
-# If fd exists, make the default ctrl-T search fd-based
-if command -v fd >/dev/null 2>&1; then
-  export FZF_CTRL_T_COMMAND='fd --type f --hidden --exclude .git'
-fi
-
-# That’s it: key-bindings.zsh defines:
-#   - fzf-file-widget  (usually bound to ^T)
-#   - fzf-history-widget (usually bound to ^R)
-#   - fzf-cd-widget (usually bound to alt-C)
