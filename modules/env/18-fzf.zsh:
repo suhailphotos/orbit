@@ -1,0 +1,25 @@
+# modules/env/18-fzf.zsh
+# Enable fzf keybindings/completions if fzf is installed.
+
+[[ -o interactive ]] || return 0
+command -v fzf >/dev/null 2>&1 || return 0
+
+# Try to locate fzf's shell integration
+local _fzf_dir=""
+if [[ -n ${FZF_HOME-} && -d $FZF_HOME ]]; then
+  _fzf_dir="$FZF_HOME"
+elif command -v brew >/dev/null 2>&1; then
+  # Homebrew (macOS / Linux)
+  local bp; bp="$(brew --prefix 2>/dev/null || true)"
+  [[ -d "$bp/opt/fzf" ]] && _fzf_dir="$bp/opt/fzf"
+elif [[ -d /usr/share/fzf ]]; then
+  _fzf_dir=/usr/share/fzf
+fi
+
+[[ -n $_fzf_dir ]] || return 0
+
+# Keybindings + completion (silently, if present)
+[[ -r "$_fzf_dir/shell/key-bindings.zsh" ]] && source "$_fzf_dir/shell/key-bindings.zsh"
+[[ -r "$_fzf_dir/shell/completion.zsh"   ]] && source "$_fzf_dir/shell/completion.zsh"
+
+unset _fzf_dir
