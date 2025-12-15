@@ -1,10 +1,20 @@
 # Commit + push
-lazygit() {
-  [[ -z $1 ]] && { echo "Usage: lazygit <message> [branch]"; return 1; }
-  local branch="${2:-main}"
-  git add .
-  git commit -m "$1"
-  git push origin "$branch"
+git_commit_push() {
+  [ -z "${1:-}" ] && { echo "Usage: git_commit_push <message> [branch]"; return 1; }
+
+  # Default branch = currently checked out branch
+  current_branch="$(
+    command git symbolic-ref --short HEAD 2>/dev/null \
+      || command git rev-parse --abbrev-ref HEAD 2>/dev/null
+  )"
+
+  [ -z "$current_branch" ] && { echo "Could not determine current branch." >&2; return 1; }
+
+  branch="${2:-$current_branch}"
+
+  command git add . || return 1
+  command git commit -m "$1" || return 1
+  command git push origin "$branch"
 }
 
 # Fast merge with message

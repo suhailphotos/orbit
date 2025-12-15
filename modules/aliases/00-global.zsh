@@ -29,7 +29,7 @@ alias bindu='cd $XDG_CONFIG_HOME'
 # Commands
 # --------------------------------------------------
 alias gs='git status'
-alias lg='lazygit'
+alias gcp='git_commit_push'
 
 # --------------------------------------------------
 # Projects
