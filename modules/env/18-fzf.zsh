@@ -1,13 +1,9 @@
 # modules/env/18-fzf.zsh
-# Lightweight fzf integration for Zsh via Orbit
+emulate -L zsh
 
-# Only in interactive shells
 [[ $- != *i* ]] && return
-
-# Only if fzf exists
 command -v fzf >/dev/null 2>&1 || return
 
-# Find Homebrew / .fzf install paths
 if command -v brew >/dev/null 2>&1; then
   local fzf_prefix
   fzf_prefix="$(brew --prefix fzf 2>/dev/null)"
@@ -18,8 +14,20 @@ else
   FZF_BINDINGS="$HOME/.fzf/shell/key-bindings.zsh"
 fi
 
-# Optional: completions
-[[ -r "$FZF_COMPLETION" ]] && source "$FZF_COMPLETION"
+# Optional: completions (quiet)
+if [[ -r "$FZF_COMPLETION" ]]; then
+  if ! { source "$FZF_COMPLETION" } >/dev/null 2>&1; then
+    print -u2 -- "[orbit] fzf completion failed to load: $FZF_COMPLETION"
+  fi
+else
+  print -u2 -- "[orbit] fzf completion not found: $FZF_COMPLETION"
+fi
 
-# Keybindings: Ctrl-T, Ctrl-R, Alt-C, etc.
-[[ -r "$FZF_BINDINGS" ]] && source "$FZF_BINDINGS"
+# Keybindings (quiet)
+if [[ -r "$FZF_BINDINGS" ]]; then
+  if ! { source "$FZF_BINDINGS" } >/dev/null 2>&1; then
+    print -u2 -- "[orbit] fzf key-bindings failed to load: $FZF_BINDINGS"
+  fi
+else
+  print -u2 -- "[orbit] fzf key-bindings not found: $FZF_BINDINGS"
+fi
